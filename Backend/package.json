@@ -1,0 +1,18 @@
+{
+  "name": "school-app",
+  "version": "1.0.0",
+  "description": "School application for admin, students and teachers",
+  "license": "ISC",
+  "author": "Ankur Singh",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^8.24.0",
+    "nodemon": "^3.1.14"
+  }
+}
