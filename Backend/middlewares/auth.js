@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/user");
 
-const protect = asyncHandler(async (req, res, next) => {
+const authUser = asyncHandler(async (req, res, next) => {
     try {
         // 1. Read the token from the cookie (set during login)
         const token = req.cookies.token;
@@ -32,4 +32,15 @@ const protect = asyncHandler(async (req, res, next) => {
     }
 });
 
-module.exports = { protect };
+const authorizeRoles = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return res.status(403).json({
+                message: "Forbidden: You do not have permission to access this resource."
+            });
+        }
+        next();
+    };
+};
+
+module.exports = { authUser, authorizeRoles };
