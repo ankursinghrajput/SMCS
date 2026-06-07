@@ -32,8 +32,8 @@ const validateAttendance = asyncHandler(async (req, res, next) => {
     if (!validator.isDate(date)) {
         return res.status(400).json({ message: "Invalid date" });
     }
-    if (status && !validator.isIn(status, ["present", "absent"])) {
-        return res.status(400).json({ message: "Invalid status" });
+    if (status && !validator.isIn(status, ["present", "absent", "excused", "late"])) {
+        return res.status(400).json({ message: "Invalid status. Must be one of: present, absent, excused, late" });
     }
 
     next();
