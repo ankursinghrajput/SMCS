@@ -22,13 +22,27 @@ app.use("/student", studentRoutes);
 app.use("/attendance", attendanceRoutes);
 app.use("/academic", academicRoutes);
 
+// 404 handler — no route matched
+app.use((req, res) => {
+    res.status(404).json({ message: "Route not found" });
+});
+
+// Global error handler — catches errors thrown in any route/middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+        message: err.message || "Internal Server Error"
+    });
+});
 
 connectDB().then(() => {
     app.listen(process.env.PORT || 7001, () => {
-        console.log(`Server running on port ${process.env.PORT}`);
+        console.log(`Server running on port ${process.env.PORT || 7001}`);
     });
 }).catch((err) => {
     console.log(err);
 });
+
 
 

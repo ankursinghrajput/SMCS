@@ -1,8 +1,5 @@
 const express = require("express");
 const { authUser, authorizeRoles } = require("../middlewares/auth");
-const Attendance = require("../models/attendance");
-const User = require("../models/user");
-const { validateAttendance } = require("../utils/validate");
 const asyncHandler = require("express-async-handler");
 const facultyRouter = express.Router();
 

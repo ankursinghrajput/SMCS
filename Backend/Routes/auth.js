@@ -8,7 +8,7 @@ const { authUser } = require("../middlewares/auth");
 
 const authRouter = express.Router();
 
-authRouter.post("/login", validateLogIn, asyncHandler(async (req, res, next) => {
+authRouter.post("/login", validateLogIn, asyncHandler(async (req, res) => {
     const { email, contactNumber, password, role } = req.body;
 
     let user;
@@ -33,7 +33,7 @@ authRouter.post("/login", validateLogIn, asyncHandler(async (req, res, next) => 
 }));
 
 authRouter.post("/logout", (req, res) => {
-    res.clearCookie("token", null, { expires: new Date(Date.now()) });
+    res.clearCookie("token", { httpOnly: true, secure: true });
     res.status(200).json({ message: "User logged out successfully" });
 });
 

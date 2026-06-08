@@ -3,7 +3,9 @@ const { authUser, authorizeRoles } = require("../middlewares/auth");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/user");
 const Marks = require("../models/marks");
+const Notice = require("../models/noticeBoard");
 const bcrypt = require("bcrypt");
+const { validateMarks, validateMarksUpdate } = require("../utils/validate");
 
 const adminRouter = express.Router();
 
@@ -13,12 +15,33 @@ adminRouter.get("/", authUser, authorizeRoles("admin"), (req, res) => {
 
 // ================= STUDENTS =================
 adminRouter.get("/students", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
-    const allStudents = await User.find({ role: "student" }).select("-password");
-    res.status(200).json({ message: "List of students", allStudents });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalStudents = await User.countDocuments({ role: "student" });
+    const allStudents = await User.find({ role: "student" })
+        .select("-password")
+        .skip(skip)
+        .limit(limit);
+
+    res.status(200).json({
+        message: "List of students",
+        pagination: {
+            total: totalStudents,
+            page,
+            limit,
+            pages: Math.ceil(totalStudents / limit)
+        },
+        allStudents
+    });
 }));
 
 adminRouter.post("/student", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
     const { name, email, password, contactNumber } = req.body;
+    if (!name || !password || !contactNumber) {
+        return res.status(400).json({ message: "Name, password, and contact number are required" });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const student = new User({ name, email, password: hashedPassword, contactNumber, role: "student" });
     await student.save();
@@ -53,12 +76,33 @@ adminRouter.delete("/student/:id", authUser, authorizeRoles("admin"), asyncHandl
 
 // ================= FACULTY =================
 adminRouter.get("/faculties", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
-    const allFaculties = await User.find({ role: "faculty" }).select("-password");
-    res.status(200).json({ message: "List of faculty", allFaculties });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalFaculties = await User.countDocuments({ role: "faculty" });
+    const allFaculties = await User.find({ role: "faculty" })
+        .select("-password")
+        .skip(skip)
+        .limit(limit);
+
+    res.status(200).json({
+        message: "List of faculty",
+        pagination: {
+            total: totalFaculties,
+            page,
+            limit,
+            pages: Math.ceil(totalFaculties / limit)
+        },
+        allFaculties
+    });
 }));
 
 adminRouter.post("/faculty", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
     const { name, email, password, contactNumber } = req.body;
+    if (!name || !email || !password || !contactNumber) {
+        return res.status(400).json({ message: "Name, email, password, and contact number are required" });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const faculty = new User({ name, email, password: hashedPassword, contactNumber, role: "faculty" });
     await faculty.save();
@@ -103,20 +147,39 @@ adminRouter.get("/marks", authUser, authorizeRoles("admin", "faculty"), asyncHan
     if (req.query.examType) filter.examType = req.query.examType;
     if (req.query.student) filter.student = req.query.student;
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalMarks = await Marks.countDocuments(filter);
     const marks = await Marks.find(filter)
         .populate("student", "name")
         .populate("subject", "name")
-        .sort({ marks: -1 });
-    res.status(200).json({ message: "Marks retrieved", marks });
+        .sort({ marks: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    res.status(200).json({
+        message: "Marks retrieved",
+        pagination: {
+            total: totalMarks,
+            page,
+            limit,
+            pages: Math.ceil(totalMarks / limit)
+        },
+        marks
+    });
 }));
 
 // POST upload marks (faculty & admin)
 // Body: { student, subject, examType, marks, totalMarks, passingMarks }
-adminRouter.post("/marks", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
+adminRouter.post("/marks", authUser, validateMarks, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
     const { student, subject, examType, marks, totalMarks, passingMarks } = req.body;
 
-    if (!examType) {
-        return res.status(400).json({ message: "examType is required (e.g. 'Mid-Term', 'Final')" });
+    // Check if student exists and has student role
+    const studentUser = await User.findOne({ _id: student, role: "student" });
+    if (!studentUser) {
+        return res.status(404).json({ message: "Student not found" });
     }
 
     const newMark = new Marks({
@@ -132,11 +195,23 @@ adminRouter.post("/marks", authUser, authorizeRoles("admin", "faculty"), asyncHa
 }));
 
 // PATCH update marks
-adminRouter.patch("/marks/:id", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
+adminRouter.patch("/marks/:id", authUser, validateMarksUpdate, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { marks, totalMarks, passingMarks, examType } = req.body;
     const mark = await Marks.findById(id);
     if (!mark) return res.status(404).json({ message: "Mark not found" });
+
+    // Validate overall bounds of the final state
+    const targetMarks = marks !== undefined ? Number(marks) : mark.marks;
+    const targetTotal = totalMarks !== undefined ? Number(totalMarks) : mark.totalMarks;
+    const targetPassing = passingMarks !== undefined ? Number(passingMarks) : mark.passingMarks;
+
+    if (targetMarks > targetTotal) {
+        return res.status(400).json({ message: "Marks obtained cannot exceed total marks" });
+    }
+    if (targetPassing > targetTotal) {
+        return res.status(400).json({ message: "Passing marks cannot exceed total marks" });
+    }
 
     if (marks !== undefined) mark.marks = marks;
     if (totalMarks !== undefined) mark.totalMarks = totalMarks;
@@ -197,17 +272,24 @@ adminRouter.get("/marks/analytics", authUser, authorizeRoles("admin", "faculty")
 }));
 
 
-// ============= NOTICES =============
+// ================= NOTICES =============
 
 adminRouter.post("/notice", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
-    const { title, description } = req.body;
-    const notice = new Notice({ title, description });
+    const { title, description, audience } = req.body;
+    const notice = new Notice({ title, description, audience });
     await notice.save();
     res.status(201).json({ message: "Notice created successfully", notice });
 }));
 
 adminRouter.get("/notice", authUser, authorizeRoles("admin", "faculty", "student"), asyncHandler(async (req, res) => {
-    const notices = await Notice.find().sort({ createdAt: -1 });
+    let filter = {};
+    if (req.user.role === "student") {
+        filter = { audience: { $in: ["all", "student"] } };
+    } else if (req.user.role === "faculty") {
+        filter = { audience: { $in: ["all", "faculty"] } };
+    }
+
+    const notices = await Notice.find(filter).sort({ createdAt: -1 });
     res.status(200).json({ message: "Notices retrieved", notices });
 }));
 
@@ -215,16 +297,26 @@ adminRouter.get("/notice/:id", authUser, authorizeRoles("admin", "faculty", "stu
     const { id } = req.params;
     const notice = await Notice.findById(id);
     if (!notice) return res.status(404).json({ message: "Notice not found" });
+
+    // Enforce role access boundaries based on notice audience
+    if (req.user.role === "student" && notice.audience === "faculty") {
+        return res.status(403).json({ message: "Forbidden: You do not have permission to view this notice." });
+    }
+    if (req.user.role === "faculty" && notice.audience === "student") {
+        return res.status(403).json({ message: "Forbidden: You do not have permission to view this notice." });
+    }
+
     res.status(200).json({ message: "Notice retrieved", notice });
 }));
 
 adminRouter.patch("/notice/:id", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { title, description } = req.body;
+    const { title, description, audience } = req.body;
     const notice = await Notice.findById(id);
     if (!notice) return res.status(404).json({ message: "Notice not found" });
     notice.title = title || notice.title;
     notice.description = description || notice.description;
+    if (audience) notice.audience = audience;
     await notice.save();
     res.status(200).json({ message: "Notice updated successfully", notice });
 }));

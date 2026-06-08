@@ -7,7 +7,7 @@ const { validateAttendance } = require("../utils/validate");
 const attendanceRouter = express.Router();
 
 // ================= MARK SINGLE ATTENDANCE =================
-attendanceRouter.post("/mark", validateAttendance, authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
+attendanceRouter.post("/mark", authUser, authorizeRoles("admin", "faculty"), validateAttendance, asyncHandler(async (req, res) => {
     const { student, date, status, subject } = req.body;
     const user = await User.findById(student);
     if (!user) {
