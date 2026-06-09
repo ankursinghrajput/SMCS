@@ -1,27 +1,51 @@
-import { createContext, useContext, useState } from 'react';
-import { dummyUser } from '../data/dummyData';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  // Default to dummyUser so the app is explorable without a backend
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch('/api/profile', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch (err) {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   const login = async (credentials) => {
     setIsLoading(true);
     try {
-      // TODO: Replace with real API call:
-      // const res = await fetch('/login', { method: 'POST', body: JSON.stringify(credentials), headers: { 'Content-Type': 'application/json' }, credentials: 'include' });
-      await new Promise(r => setTimeout(r, 800)); // Simulate network delay
-
-      // Determine role from credentials and set appropriate dummy user
-      const roleMap = {
-        admin: { ...dummyUser, name: 'Dr. Anjali Gupta', email: credentials.email || 'admin@smcs.edu', role: 'admin' },
-        faculty: { ...dummyUser, name: 'Prof. Vikram Singh', email: credentials.email || 'faculty@smcs.edu', role: 'faculty' },
-        student: { ...dummyUser, name: 'Rahul Sharma', role: 'student', contactNumber: credentials.contactNumber || 9876543210 },
-      };
-      setUser(roleMap[credentials.role] || roleMap.student);
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Invalid credentials');
+      }
+      
+      // Fetch profile to get full user details
+      const profileRes = await fetch('/api/profile', { credentials: 'include' });
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setUser(profileData.user);
+      }
       return { success: true };
     } catch (err) {
       return { success: false, message: err.message };
@@ -31,9 +55,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    // TODO: Replace with real API call:
-    // await fetch('/logout', { method: 'POST', credentials: 'include' });
-    setUser(null);
+    setIsLoading(true);
+    try {
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      setUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -48,3 +78,4 @@ export const useAuth = () => {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 };
+

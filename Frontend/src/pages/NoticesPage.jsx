@@ -1,16 +1,38 @@
-import { useState } from 'react';
-import { dummyNotices } from '../data/dummyData';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function NoticesPage() {
   const { user } = useAuth();
+  const [notices, setNotices] = useState([]);
   const [selected, setSelected] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showAddEditModal, setShowAddEditModal] = useState(false);
+  const [editingNotice, setEditingNotice] = useState(null);
+  const [form, setForm] = useState({ title: '', description: '', audience: 'all' });
   const [filterAudience, setFilterAudience] = useState('all');
+  const [loading, setLoading] = useState(true);
 
   const isAdmin = user?.role === 'admin';
 
-  const filtered = dummyNotices.filter(n => {
+  const fetchNotices = async () => {
+    try {
+      const res = await fetch('/api/admin/notice', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setNotices(data.notices || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notices:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotices();
+  }, []);
+
+  const filtered = notices.filter(n => {
     if (filterAudience === 'all') return true;
     return n.audience === filterAudience;
   });
@@ -24,6 +46,68 @@ export default function NoticesPage() {
   const openNotice = (notice) => {
     setSelected(notice);
     setShowModal(true);
+  };
+
+  const handleOpenAdd = () => {
+    setEditingNotice(null);
+    setForm({ title: '', description: '', audience: 'all' });
+    setShowAddEditModal(true);
+  };
+
+  const handleOpenEdit = (notice) => {
+    setEditingNotice(notice);
+    setForm({
+      title: notice.title,
+      description: notice.description,
+      audience: notice.audience,
+    });
+    setShowAddEditModal(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const url = editingNotice
+        ? `/api/admin/notice/${editingNotice._id}`
+        : '/api/admin/notice';
+      const method = editingNotice ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+        credentials: 'include',
+      });
+
+      if (res.ok) {
+        fetchNotices();
+        setShowAddEditModal(false);
+      } else {
+        const errData = await res.json();
+        alert(errData.message || 'Action failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this notice?')) return;
+    try {
+      const res = await fetch(`/api/admin/notice/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        fetchNotices();
+      } else {
+        const errData = await res.json();
+        alert(errData.message || 'Failed to delete');
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -48,7 +132,7 @@ export default function NoticesPage() {
             ))}
           </div>
           {isAdmin && (
-            <button id="add-notice-btn" className="btn btn-secondary btn-sm">
+            <button id="add-notice-btn" className="btn btn-secondary btn-sm" onClick={handleOpenAdd}>
               + Add Notice
             </button>
           )}
@@ -56,7 +140,9 @@ export default function NoticesPage() {
       </div>
 
       {/* Notice Cards */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading notices...</div>
+      ) : filtered.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">📭</div>
           <p>No notices found for this audience.</p>
@@ -94,7 +180,7 @@ export default function NoticesPage() {
                       <button
                         id={`edit-notice-${n._id}`}
                         className="btn btn-ghost btn-sm"
-                        onClick={e => { e.stopPropagation(); }}
+                        onClick={e => { e.stopPropagation(); handleOpenEdit(n); }}
                         aria-label="Edit notice"
                       >
                         ✏️
@@ -102,7 +188,7 @@ export default function NoticesPage() {
                       <button
                         id={`delete-notice-${n._id}`}
                         className="btn btn-ghost btn-sm"
-                        onClick={e => { e.stopPropagation(); }}
+                        onClick={e => { e.stopPropagation(); handleDelete(n._id); }}
                         aria-label="Delete notice"
                         style={{ color: 'var(--clr-danger)' }}
                       >
@@ -139,6 +225,42 @@ export default function NoticesPage() {
             <p style={{ fontSize: '0.9rem', color: 'var(--clr-text-secondary)', lineHeight: 1.7 }}>
               {selected.description}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Modal */}
+      {showAddEditModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-edit-notice-title" onClick={() => setShowAddEditModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title" id="add-edit-notice-title">{editingNotice ? 'Edit Notice' : 'Add New Notice'}</h2>
+              <button className="btn-icon" onClick={() => setShowAddEditModal(false)} aria-label="Close">✕</button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="notice-title">Title *</label>
+                <input id="notice-title" className="form-input" placeholder="Notice Title" required
+                  value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="notice-desc">Description *</label>
+                <textarea id="notice-desc" className="form-input" style={{ minHeight: '120px', resize: 'vertical' }} placeholder="Notice description..." required
+                  value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="notice-audience">Audience *</label>
+                <select id="notice-audience" className="form-input" value={form.audience} onChange={e => setForm(f => ({ ...f, audience: e.target.value }))}>
+                  <option value="all">Everyone</option>
+                  <option value="student">Students</option>
+                  <option value="faculty">Faculty</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button type="button" className="btn btn-ghost" onClick={() => setShowAddEditModal(false)}>Cancel</button>
+                <button type="submit" id="submit-add-notice" className="btn btn-primary">{editingNotice ? 'Save Changes' : 'Add Notice'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

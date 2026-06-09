@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const roles = [
-  { id: 'student', label: 'Student', icon: '📖' },
-  { id: 'faculty', label: 'Faculty', icon: '⚙️' },
-  { id: 'admin', label: 'Admin', icon: '🛡️' },
+  { id: 'student', label: 'Student' },
+  { id: 'faculty', label: 'Faculty' },
+  { id: 'admin', label: 'Admin' },
 ];
 
 /* ── purple palette ── */
@@ -32,282 +32,300 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#ffffff',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: "'Inter', sans-serif",
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <>
+      <style>{`
+        .login-container {
+          min-height: 100vh;
+          width: 100%;
+          background: #ffffff;
+          display: flex;
+          flex-direction: row;
+          font-family: 'Raleway', sans-serif;
+          position: relative;
+          overflow: hidden;
+        }
+        .login-left {
+          flex: 1.2;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          padding: 20px;
+        }
+        .login-image {
+          max-width: 100%;
+          max-height: 70vh;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          display: block;
+        }
+        .sanskrit-text {
+          margin-top: 16px;
+          font-family: 'Noto Serif Devanagari', serif;
+          font-size: 1.4rem;
+          color: #4b5563;
+          text-align: center;
+          font-weight: 500;
+        }
+        .login-right {
+          flex: 0.8;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: flex-start;
+          padding: 40px 40px 40px 8%;
+          position: relative;
+          z-index: 1;
+          background: transparent;
+          box-shadow: none;
+        }
+        .login-form-wrapper {
+          width: 100%;
+          max-width: 420px;
+          margin: 0;
+        }
+        .login-heading {
+          font-family: 'Raleway', sans-serif;
+          font-size: 2.1rem;
+          font-weight: 800;
+          color: #111827;
+          margin-bottom: 8px;
+          line-height: 1.2;
+          letter-spacing: -0.02em;
+        }
+        .login-subtitle {
+          font-family: 'Raleway', sans-serif;
+          font-size: 0.95rem;
+          color: #4b5563;
+          margin-bottom: 32px;
+          line-height: 1.5;
+        }
+        .login-btn {
+          width: 100%;
+          padding: 13px;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          background: #3b82f6;
+          color: #ffffff;
+          font-family: 'Raleway', sans-serif;
+          font-size: 0.96rem;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          transition: background 0.2s, transform 0.15s;
+          box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+        }
+        .login-btn:hover {
+          background: #60a5fa;
+          transform: translateY(-1px);
+        }
+        .login-btn:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
+          box-shadow: none;
+          transform: none;
+        }
+        @media (max-width: 768px) {
+          .login-container {
+            flex-direction: column;
+          }
+          .login-left {
+            flex: none;
+            height: 40vh;
+            padding: 40px 20px 10px;
+            order: -1;
+          }
+          .login-image {
+            max-height: 100%;
+          }
+          .login-right {
+            flex: 1;
+            align-items: center;
+            padding: 20px;
+          }
+          .login-form-wrapper {
+            margin: 0 auto;
+          }
+        }
+      `}</style>
+      <div className="login-container">
 
-      {/* ── Decorative corner flourishes ── */}
-      <CornerFlourish position="top-left" />
-      <CornerFlourish position="top-right" />
-      <CornerFlourish position="bottom-left" />
-      <CornerFlourish position="bottom-right" />
+        {/* ── Decorative corner flourishes ── */}
+        <CornerFlourish position="top-left" />
+        <CornerFlourish position="top-right" />
+        <CornerFlourish position="bottom-left" />
+        <CornerFlourish position="bottom-right" />
 
-      {/* ── Main card ── */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '72px',
-        width: '100%',
-        maxWidth: '900px',
-        padding: '40px 24px',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-
-        {/* ══════════ LEFT — Logo ══════════ */}
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* ══════════ LEFT — Image ══════════ */}
+        <div className="login-left">
           <img
-            src="/SMCS-removebg-preview.png"
-            alt="Sanjeev Memorial Center School"
-            style={{
-              width: '420px',
-              height: '420px',
-              objectFit: 'contain',
-            }}
+            src="/SMCS_logo_nobg.png"
+            alt="Goddess Saraswati Maa"
+            className="login-image"
           />
+          <div className="sanskrit-text">सा विद्या या विमुक्तये</div>
         </div>
 
         {/* ══════════ RIGHT — Form ══════════ */}
-        <div style={{ flex: 1, maxWidth: '400px' }}>
+        <div className="login-right">
 
-          {/* Heading */}
-          <h1 style={{
-            fontFamily: "'Outfit', sans-serif",
-            fontSize: '1.75rem',
-            fontWeight: 800,
-            color: '#111827',
-            marginBottom: '6px',
-            lineHeight: 1.2,
-          }}>
-            Welcome to SMCS
-          </h1>
-          <p style={{
-            fontSize: '0.88rem',
-            color: '#6b7280',
-            marginBottom: '28px',
-          }}>
-            Sign in to your account to continue
-          </p>
+          <div className="login-form-wrapper">
 
-          {/* Role tabs */}
-          <div style={{
-            display: 'flex',
-            gap: '6px',
-            marginBottom: '22px',
-          }}>
-            {roles.map(r => {
-              const active = activeRole === r.id;
-              return (
-                <button
-                  key={r.id}
-                  id={`role-tab-${r.id}`}
-                  onClick={() => { setActiveRole(r.id); setError(''); }}
-                  style={{
-                    flex: 1,
-                    padding: '9px 6px',
-                    borderRadius: '8px',
-                    border: active ? 'none' : '1.5px solid #e5e7eb',
-                    cursor: 'pointer',
-                    fontFamily: "'Inter', sans-serif",
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '5px',
-                    transition: 'all 0.18s ease',
-                    background: active ? PURPLE : '#f9fafb',
-                    color: active ? '#ffffff' : '#4b5563',
-                    boxShadow: active ? `0 2px 10px ${PURPLE}40` : 'none',
-                  }}
-                >
-                  <span style={{ fontSize: '0.85rem' }}>{r.icon}</span>
-                  {r.label}
-                </button>
-              );
-            })}
-          </div>
+            {/* Heading */}
+            <h1 className="login-heading">
+              {/* Welcome Back */}
+            </h1>
+            <p className="login-subtitle">
+              Please enter your credentials to securely access your SMCS account.
+            </p>
 
-          {/* Form */}
-          <form onSubmit={handleLogin} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-            {activeRole === 'student' ? (
-              <div>
-                <label htmlFor="contact-number" style={labelStyle}>Contact Number</label>
-                <input
-                  id="contact-number"
-                  type="tel"
-                  placeholder="your 10-digit number"
-                  value={contactNumber}
-                  onChange={e => setContactNumber(e.target.value)}
-                  required
-                  style={inputStyle}
-                  onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
-                  onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
-                />
-              </div>
-            ) : (
-              <div>
-                <label htmlFor="email" style={labelStyle}>Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  style={inputStyle}
-                  onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
-                  onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
-                />
-              </div>
-            )}
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                <label htmlFor="password" style={{ ...labelStyle, marginBottom: 0 }}>Password</label>
-                <span style={{ fontSize: '0.78rem', color: PURPLE, cursor: 'pointer', fontWeight: 500 }}>
-                  Forgot password?
-                </span>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <input
-                  id="password"
-                  type={showPass ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  style={{ ...inputStyle, paddingRight: '42px' }}
-                  onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
-                  onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(v => !v)}
-                  style={{
-                    position: 'absolute', right: '12px', top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: '#9ca3af', padding: 0, fontSize: '0.9rem',
-                  }}
-                  aria-label={showPass ? 'Hide password' : 'Show password'}
-                >
-                  {showPass ? '🙈' : '👁️'}
-                </button>
-              </div>
+            {/* Role tabs */}
+            <div style={{
+              display: 'flex',
+              gap: '6px',
+              marginBottom: '22px',
+            }}>
+              {roles.map(r => {
+                const active = activeRole === r.id;
+                return (
+                  <button
+                    key={r.id}
+                    id={`role-tab-${r.id}`}
+                    onClick={() => { setActiveRole(r.id); setError(''); }}
+                    style={{
+                      flex: 1,
+                      padding: '9px 6px',
+                      borderRadius: '8px',
+                      border: active ? 'none' : '1.5px solid #e5e7eb',
+                      cursor: 'pointer',
+                      fontFamily: "'Raleway', sans-serif",
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      transition: 'all 0.18s ease',
+                      background: active ? PURPLE : '#f9fafb',
+                      color: active ? '#ffffff' : '#4b5563',
+                      boxShadow: active ? `0 2px 10px ${PURPLE}40` : 'none',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.85rem' }}>{r.icon}</span>
+                    {r.label}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Error */}
-            {error && (
-              <div style={{
-                background: '#fef2f2', border: '1px solid #fca5a5',
-                borderRadius: '8px', padding: '9px 12px',
-                fontSize: '0.8rem', color: '#b91c1c',
-              }}>
-                {error}
+            {/* Form */}
+            <form onSubmit={handleLogin} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+              {activeRole === 'student' ? (
+                <div>
+                  <label htmlFor="contact-number" style={labelStyle}>Contact Number</label>
+                  <input
+                    id="contact-number"
+                    type="tel"
+                    placeholder="your 10-digit number"
+                    value={contactNumber}
+                    onChange={e => setContactNumber(e.target.value)}
+                    required
+                    style={inputStyle}
+                    onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
+                    onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label htmlFor="email" style={labelStyle}>Email</label>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    style={inputStyle}
+                    onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
+                    onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
+                  />
+                </div>
+              )}
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                  <label htmlFor="password" style={{ ...labelStyle, marginBottom: 0 }}>Password</label>
+                  <span style={{ fontSize: '0.78rem', color: PURPLE, cursor: 'pointer', fontWeight: 500 }}>
+                    Forgot password?
+                  </span>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="password"
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    style={{ ...inputStyle, paddingRight: '42px' }}
+                    onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
+                    onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(v => !v)}
+                    style={{
+                      position: 'absolute', right: '12px', top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: '#9ca3af', padding: 0, fontSize: '0.9rem',
+                    }}
+                    aria-label={showPass ? 'Hide password' : 'Show password'}
+                  >
+                    {showPass ? '🙈' : '👁️'}
+                  </button>
+                </div>
               </div>
-            )}
 
-            {/* Sign In button */}
-            <button
-              type="submit"
-              id="login-submit-btn"
-              disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '13px',
-                borderRadius: '10px',
-                border: 'none',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                background: isLoading ? '#a78bfa' : PURPLE,
-                color: '#ffffff',
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '0.96rem',
-                fontWeight: 700,
-                letterSpacing: '0.01em',
-                transition: 'background 0.2s, transform 0.15s',
-                boxShadow: `0 4px 14px ${PURPLE}35`,
-              }}
-              onMouseEnter={e => { if (!isLoading) { e.currentTarget.style.background = PURPLE_H; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
-              onMouseLeave={e => { e.currentTarget.style.background = isLoading ? '#a78bfa' : PURPLE; e.currentTarget.style.transform = 'translateY(0)'; }}
-            >
-              {isLoading ? 'Signing in…' : 'Sign In'}
-            </button>
-          </form>
+              {/* Error */}
+              {error && (
+                <div style={{
+                  background: '#fef2f2', border: '1px solid #fca5a5',
+                  borderRadius: '8px', padding: '9px 12px',
+                  fontSize: '0.8rem', color: '#b91c1c',
+                }}>
+                  {error}
+                </div>
+              )}
 
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-            <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
-              OR CONTINUE WITH
-            </span>
-            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-          </div>
-
-          {/* Social-style role quick-select buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {[
-              { id: 'student-quick', label: 'Continue as Student', role: 'student', icon: '🎓' },
-              { id: 'faculty-quick', label: 'Continue as Faculty', role: 'faculty', icon: '👨‍🏫' },
-            ].map(b => (
+              {/* Sign In button */}
               <button
-                key={b.id}
-                id={b.id}
-                type="button"
-                onClick={() => { setActiveRole(b.role); setError(''); }}
-                style={{
-                  width: '100%',
-                  padding: '11px',
-                  borderRadius: '10px',
-                  border: '1.5px solid #e5e7eb',
-                  background: activeRole === b.role ? PURPLE_BG : '#f9fafb',
-                  color: activeRole === b.role ? PURPLE : '#374151',
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.86rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.18s ease',
-                  borderColor: activeRole === b.role ? '#c4b5fd' : '#e5e7eb',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = PURPLE_BG; e.currentTarget.style.borderColor = '#c4b5fd'; e.currentTarget.style.color = PURPLE; }}
-                onMouseLeave={e => {
-                  if (activeRole !== b.role) {
-                    e.currentTarget.style.background = '#f9fafb';
-                    e.currentTarget.style.borderColor = '#e5e7eb';
-                    e.currentTarget.style.color = '#374151';
-                  }
-                }}
+                type="submit"
+                id="login-submit-btn"
+                disabled={isLoading}
+                className="login-btn"
               >
-                <span>{b.icon}</span>
-                {b.label}
+                {isLoading ? 'Signing in…' : 'Sign In'}
               </button>
-            ))}
-          </div>
+            </form>
 
-          {/* Footer */}
-          <p style={{
-            textAlign: 'center',
-            marginTop: '24px',
-            fontSize: '0.78rem',
-            color: '#9ca3af',
-          }}>
-            © Sanjeev Memorial Center School
-          </p>
+
+            {/* Footer */}
+            <p style={{
+              textAlign: 'center',
+              marginTop: '24px',
+              fontSize: '0.78rem',
+              color: '#9ca3af',
+            }}>
+              © Sanjeev Memorial Center School
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -365,5 +383,5 @@ const inputStyle = {
   outline: 'none',
   transition: 'border-color 0.18s, background 0.18s',
   boxSizing: 'border-box',
-  fontFamily: "'Inter', sans-serif",
+  fontFamily: "'Raleway', sans-serif",
 };

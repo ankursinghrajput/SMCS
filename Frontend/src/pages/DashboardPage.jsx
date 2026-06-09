@@ -1,5 +1,5 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { dummyAttendance, dummyMarks, dummyNotices, dummyAnalytics } from '../data/dummyData';
 
 // Circular Progress Component
 function CircularProgress({ percentage, size = 80, color = 'var(--clr-primary)' }) {
@@ -30,12 +30,31 @@ function CircularProgress({ percentage, size = 80, color = 'var(--clr-primary)' 
 
 // Student Dashboard
 function StudentDashboard({ user }) {
-  const recentNotices = dummyNotices.slice(0, 3);
-  const lowAttendance = dummyAttendance.filter(s => s.percentage < 75);
-  const avgMark = Math.round(dummyMarks.reduce((a, b) => a + b.marks, 0) / dummyMarks.length);
-  const overallAttendance = Math.round(
-    dummyAttendance.reduce((a, b) => a + b.percentage, 0) / dummyAttendance.length
-  );
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/student/dashboard', { credentials: 'include' })
+      .then(res => res.json())
+      .then(d => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading Dashboard...</div>;
+  }
+
+  const attendanceDetails = data?.attendanceDetails || [];
+  const attendanceWarnings = data?.attendanceWarnings || [];
+  const overallAttendance = attendanceDetails.length > 0
+    ? Math.round(attendanceDetails.reduce((a, b) => a + b.percentage, 0) / attendanceDetails.length)
+    : 0;
 
   return (
     <div className="fade-in-up">
@@ -56,7 +75,7 @@ function StudentDashboard({ user }) {
             {user?.name} 👋
           </h2>
           <p style={{ opacity: 0.75, fontSize: '0.88rem' }}>
-            You have <strong style={{ color: '#fbbf24' }}>{lowAttendance.length} subject{lowAttendance.length !== 1 ? 's' : ''}</strong> with low attendance. Stay on track!
+            You have <strong style={{ color: '#fbbf24' }}>{attendanceWarnings.length} subject{attendanceWarnings.length !== 1 ? 's' : ''}</strong> with low attendance. Stay on track!
           </p>
         </div>
       </div>
@@ -65,9 +84,8 @@ function StudentDashboard({ user }) {
       <div className="stats-grid">
         {[
           { label: 'Overall Attendance', value: `${overallAttendance}%`, icon: '📅', color: '#e8f4fd', iconBg: '#1a7fce' },
-          { label: 'Subjects Enrolled', value: dummyAttendance.length, icon: '📚', color: '#d1fae5', iconBg: '#10b981' },
-          { label: 'Average Marks', value: `${avgMark}/100`, icon: '📝', color: '#ede9fe', iconBg: '#8b5cf6' },
-          { label: 'Notices Unread', value: 2, icon: '📢', color: '#fef3c7', iconBg: '#f59e0b' },
+          { label: 'Subjects Enrolled', value: attendanceDetails.length, icon: '📚', color: '#d1fae5', iconBg: '#10b981' },
+          { label: 'Attendance Warnings', value: attendanceWarnings.length, icon: '⚠️', color: '#fef3c7', iconBg: '#f59e0b' },
         ].map((s, i) => (
           <div className="stat-card" key={i}>
             <div className="stat-icon" style={{ background: s.color }}>
@@ -87,81 +105,32 @@ function StudentDashboard({ user }) {
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">📅 Attendance Summary</h3>
-            {lowAttendance.length > 0 && (
-              <span className="badge badge-danger">⚠️ {lowAttendance.length} Low</span>
+            {attendanceWarnings.length > 0 && (
+              <span className="badge badge-danger">⚠️ {attendanceWarnings.length} Low</span>
             )}
           </div>
-          {dummyAttendance.map((item, i) => {
-            const color = item.percentage >= 75 ? 'var(--clr-secondary)' : 'var(--clr-danger)';
-            return (
-              <div className="attendance-item" key={i}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--clr-text-primary)', minWidth: '140px' }}>
-                  {item.subjectName}
-                </span>
-                <div className="attendance-bar-wrap">
-                  <div className="attendance-bar-bg">
-                    <div className="attendance-bar-fill" style={{ width: `${item.percentage}%`, background: color }} />
-                  </div>
-                </div>
-                <span style={{ fontSize: '0.82rem', fontWeight: 700, color, minWidth: '48px', textAlign: 'right' }}>
-                  {item.percentage}%
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Right Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Recent Marks */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">📝 Recent Marks</h3>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {dummyMarks.slice(0, 4).map((m, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{m.subject.name}</div>
-                    <div style={{ fontSize: '0.73rem', color: 'var(--clr-text-muted)' }}>{m.examType}</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{
-                      fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 800,
-                      color: m.marks >= 75 ? 'var(--clr-secondary-dark)' : m.marks >= 40 ? 'var(--clr-primary)' : 'var(--clr-danger)'
-                    }}>{m.marks}</span>
-                    <span className={`badge ${m.marks >= 75 ? 'badge-success' : m.marks >= 40 ? 'badge-primary' : 'badge-danger'}`}>
-                      {m.grade}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Notices */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">📢 Recent Notices</h3>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {recentNotices.map((n, i) => {
-                const dotColor = n.audience === 'all' ? 'var(--clr-primary)' : n.audience === 'student' ? 'var(--clr-secondary)' : 'var(--clr-accent)';
-                return (
-                  <div className="notice-item" key={i}>
-                    <div className="notice-dot" style={{ background: dotColor }} />
-                    <div>
-                      <div className="notice-title">{n.title}</div>
-                      <div className="notice-meta">
-                        {new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                        &nbsp;·&nbsp;<span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '1px 7px' }}>{n.audience}</span>
-                      </div>
+          {attendanceDetails.length === 0 ? (
+            <p style={{ padding: '20px 0', textAlign: 'center', color: 'var(--clr-text-muted)' }}>No attendance records found</p>
+          ) : (
+            attendanceDetails.map((item, i) => {
+              const color = item.percentage >= 75 ? 'var(--clr-secondary)' : 'var(--clr-danger)';
+              return (
+                <div className="attendance-item" key={i}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--clr-text-primary)', minWidth: '140px' }}>
+                    {item.subjectName}
+                  </span>
+                  <div className="attendance-bar-wrap">
+                    <div className="attendance-bar-bg">
+                      <div className="attendance-bar-fill" style={{ width: `${item.percentage}%`, background: color }} />
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color, minWidth: '48px', textAlign: 'right' }}>
+                    {item.percentage}%
+                  </span>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
@@ -170,29 +139,43 @@ function StudentDashboard({ user }) {
 
 // Admin / Faculty Dashboard
 function AdminDashboard({ user }) {
-  const { totalStudents, totalFaculty, totalClasses, averageAttendance } = dummyAnalytics;
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const stats = user.role === 'admin'
-    ? [
-        { label: 'Total Students', value: totalStudents, icon: '🎓', color: '#e8f4fd' },
-        { label: 'Total Faculty', value: totalFaculty, icon: '👨‍🏫', color: '#d1fae5' },
-        { label: 'Total Classes', value: totalClasses, icon: '🏫', color: '#ede9fe' },
-        { label: 'Avg Attendance', value: `${averageAttendance}%`, icon: '📅', color: '#fef3c7' },
-      ]
-    : [
-        { label: 'My Students', value: 62, icon: '🎓', color: '#e8f4fd' },
-        { label: 'Classes Assigned', value: 3, icon: '🏫', color: '#d1fae5' },
-        { label: 'Avg Attendance', value: `${averageAttendance}%`, icon: '📅', color: '#ede9fe' },
-        { label: 'Notices Posted', value: 4, icon: '📢', color: '#fef3c7' },
-      ];
+  useEffect(() => {
+    fetch('/api/admin/dashboard-stats', { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      })
+      .then(data => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading Dashboard...</div>;
+  }
+
+  const { totalStudents = 0, totalFaculty = 0, totalClasses = 0, averageAttendance = 0, recentMarks = [], recentNotices = [] } = stats || {};
+
+  const cards = [
+    { label: 'Total Students', value: totalStudents, icon: '🎓', color: '#e8f4fd' },
+    { label: 'Total Faculty', value: totalFaculty, icon: '👨‍🏫', color: '#d1fae5' },
+    { label: 'Total Classes', value: totalClasses, icon: '🏫', color: '#ede9fe' },
+    { label: 'Avg Attendance', value: `${averageAttendance}%`, icon: '📅', color: '#fef3c7' },
+  ];
 
   return (
     <div className="fade-in-up">
       {/* Banner */}
       <div style={{
-        background: user.role === 'admin'
-          ? 'linear-gradient(135deg, #155fa0, #8b5cf6)'
-          : 'linear-gradient(135deg, #059669, #1a7fce)',
+        background: 'linear-gradient(135deg, #155fa0, #8b5cf6)',
         borderRadius: 'var(--radius-xl)', padding: '28px 32px',
         marginBottom: '28px', color: 'white', position: 'relative', overflow: 'hidden'
       }}>
@@ -200,19 +183,17 @@ function AdminDashboard({ user }) {
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '4px' }}>Welcome back,</p>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px' }}>
-            {user?.name} {user.role === 'admin' ? '🛡️' : '👨‍🏫'}
+            {user?.name} 🛡️
           </h2>
           <p style={{ opacity: 0.75, fontSize: '0.88rem' }}>
-            {user.role === 'admin'
-              ? `Managing ${totalStudents} students across ${totalClasses} classes`
-              : 'Managing your classes and student records'}
+            Managing {totalStudents} students across {totalClasses} classes
           </p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="stats-grid">
-        {stats.map((s, i) => (
+        {cards.map((s, i) => (
           <div className="stat-card" key={i}>
             <div className="stat-icon" style={{ background: s.color }}>
               <span style={{ fontSize: '1.3rem' }}>{s.icon}</span>
@@ -233,40 +214,42 @@ function AdminDashboard({ user }) {
             <h3 className="card-title">📝 Recent Marks Uploaded</h3>
           </div>
           <div className="table-wrapper">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Subject</th>
-                  <th>Exam</th>
-                  <th>Marks</th>
-                  <th>Grade</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { name: 'Rahul Sharma', subject: 'Mathematics', exam: 'Mid-Term', marks: 88, grade: 'A' },
-                  { name: 'Priya Patel', subject: 'Physics', exam: 'Mid-Term', marks: 74, grade: 'B+' },
-                  { name: 'Arjun Mehta', subject: 'Chemistry', exam: 'Final', marks: 52, grade: 'C' },
-                  { name: 'Sneha Reddy', subject: 'English', exam: 'Final', marks: 91, grade: 'A+' },
-                ].map((r, i) => (
-                  <tr key={i}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="avatar avatar-primary" style={{ width: 30, height: 30, fontSize: '0.72rem' }}>
-                          {r.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        {r.name}
-                      </div>
-                    </td>
-                    <td>{r.subject}</td>
-                    <td><span className="badge badge-primary">{r.exam}</span></td>
-                    <td><strong>{r.marks}</strong>/100</td>
-                    <td><span className={`badge ${r.marks >= 75 ? 'badge-success' : r.marks >= 40 ? 'badge-primary' : 'badge-danger'}`}>{r.grade}</span></td>
+            {recentMarks.length === 0 ? (
+              <p style={{ padding: '20px', textAlign: 'center', color: 'var(--clr-text-muted)' }}>No marks uploaded yet</p>
+            ) : (
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Subject</th>
+                    <th>Exam</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentMarks.map((r, i) => {
+                    const grade = r.marks >= 90 ? 'A+' : r.marks >= 80 ? 'A' : r.marks >= 70 ? 'B+' : r.marks >= 60 ? 'B' : r.marks >= 50 ? 'C' : 'D';
+                    return (
+                      <tr key={i}>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div className="avatar avatar-primary" style={{ width: 30, height: 30, fontSize: '0.72rem' }}>
+                              {r.student?.name ? r.student.name.split(' ').map(n => n[0]).join('') : '?'}
+                            </div>
+                            {r.student?.name || 'Unknown'}
+                          </div>
+                        </td>
+                        <td>{r.subject?.name || 'N/A'}</td>
+                        <td><span className="badge badge-primary">{r.examType}</span></td>
+                        <td><strong>{r.marks}</strong>/100</td>
+                        <td><span className={`badge ${r.marks >= 50 ? 'badge-success' : 'badge-danger'}`}>{grade}</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
@@ -276,21 +259,25 @@ function AdminDashboard({ user }) {
             <h3 className="card-title">📢 Recent Notices</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {dummyNotices.map((n, i) => {
-              const dotColor = n.audience === 'all' ? 'var(--clr-primary)' : n.audience === 'student' ? 'var(--clr-secondary)' : 'var(--clr-accent)';
-              return (
-                <div className="notice-item" key={i}>
-                  <div className="notice-dot" style={{ background: dotColor }} />
-                  <div>
-                    <div className="notice-title">{n.title}</div>
-                    <div className="notice-meta">
-                      {new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                      &nbsp;·&nbsp;<span className="badge badge-primary" style={{ fontSize: '0.65rem' }}>{n.audience}</span>
+            {recentNotices.length === 0 ? (
+              <p style={{ padding: '20px', textAlign: 'center', color: 'var(--clr-text-muted)' }}>No notices posted yet</p>
+            ) : (
+              recentNotices.map((n, i) => {
+                const dotColor = n.audience === 'all' ? 'var(--clr-primary)' : n.audience === 'student' ? 'var(--clr-secondary)' : 'var(--clr-accent)';
+                return (
+                  <div className="notice-item" key={i}>
+                    <div className="notice-dot" style={{ background: dotColor }} />
+                    <div>
+                      <div className="notice-title">{n.title}</div>
+                      <div className="notice-meta">
+                        {new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        &nbsp;·&nbsp;<span className="badge badge-primary" style={{ fontSize: '0.65rem' }}>{n.audience}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>

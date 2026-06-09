@@ -1,16 +1,50 @@
-import { useState } from 'react';
-import { dummyClasses } from '../../data/dummyData';
+import { useState, useEffect } from 'react';
 
 export default function ClassesPage() {
-  const [classes, setClasses] = useState(dummyClasses);
+  const [classes, setClasses] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '' });
+  const [form, setForm] = useState({ name: '', section: '' });
+  const [loading, setLoading] = useState(true);
 
-  const handleAdd = (e) => {
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch('/api/academic/classes', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setClasses(data.classes || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch classes:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  const handleAdd = async (e) => {
     e.preventDefault();
-    setClasses(prev => [...prev, { _id: Date.now().toString(), name: form.name, students: 0 }]);
-    setForm({ name: '' });
-    setShowModal(false);
+    try {
+      const res = await fetch('/api/academic/class', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        fetchClasses();
+        setForm({ name: '', section: '' });
+        setShowModal(false);
+      } else {
+        const errData = await res.json();
+        alert(errData.message || 'Failed to add class');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred');
+    }
   };
 
   return (
@@ -25,42 +59,38 @@ export default function ClassesPage() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
-        {classes.map((cls, i) => {
-          const bgGradients = [
-            'linear-gradient(135deg, #1a7fce, #155fa0)',
-            'linear-gradient(135deg, #10b981, #059669)',
-            'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-            'linear-gradient(135deg, #f59e0b, #d97706)',
-            'linear-gradient(135deg, #ef4444, #dc2626)',
-            'linear-gradient(135deg, #06b6d4, #0284c7)',
-          ];
-          return (
-            <div key={cls._id} className="card" style={{
-              background: bgGradients[i % bgGradients.length],
-              color: 'white', border: 'none'
-            }}>
-              <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🏫</div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: 800, marginBottom: '6px' }}>
-                {cls.name}
+      {loading ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading classes...</div>
+      ) : classes.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon">🏫</div>
+          <p>No classes created yet.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+          {classes.map((cls, i) => {
+            const bgGradients = [
+              'linear-gradient(135deg, #1a7fce, #155fa0)',
+              'linear-gradient(135deg, #10b981, #059669)',
+              'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+              'linear-gradient(135deg, #f59e0b, #d97706)',
+              'linear-gradient(135deg, #ef4444, #dc2626)',
+              'linear-gradient(135deg, #06b6d4, #0284c7)',
+            ];
+            return (
+              <div key={cls._id} className="card" style={{
+                background: bgGradients[i % bgGradients.length],
+                color: 'white', border: 'none', padding: '24px 20px'
+              }}>
+                <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🏫</div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px' }}>
+                  {cls.name} {cls.section ? `- ${cls.section}` : ''}
+                </div>
               </div>
-              <div style={{ opacity: 0.8, fontSize: '0.85rem', marginBottom: '16px' }}>
-                {cls.students} students enrolled
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button id={`edit-class-${cls._id}`} className="btn btn-sm" style={{
-                  flex: 1, background: 'rgba(255,255,255,0.2)',
-                  color: 'white', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)'
-                }}>✏️ Edit</button>
-                <button id={`delete-class-${cls._id}`} className="btn btn-sm" style={{
-                  background: 'rgba(255,255,255,0.15)', color: 'white',
-                  border: '1px solid rgba(255,255,255,0.25)'
-                }}>🗑️</button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-class-modal-title" onClick={() => setShowModal(false)}>
@@ -72,8 +102,13 @@ export default function ClassesPage() {
             <form onSubmit={handleAdd}>
               <div className="form-group">
                 <label className="form-label" htmlFor="class-name">Class Name *</label>
-                <input id="class-name" className="form-input" placeholder="e.g. Class 10-A" required
-                  value={form.name} onChange={e => setForm({ name: e.target.value })} />
+                <input id="class-name" className="form-input" placeholder="e.g. Class 10" required
+                  value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="class-section">Section (Optional)</label>
+                <input id="class-section" className="form-input" placeholder="e.g. A"
+                  value={form.section} onChange={e => setForm(f => ({ ...f, section: e.target.value }))} />
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>

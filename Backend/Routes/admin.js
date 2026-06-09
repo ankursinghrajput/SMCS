@@ -4,6 +4,8 @@ const asyncHandler = require("express-async-handler");
 const User = require("../models/user");
 const Marks = require("../models/marks");
 const Notice = require("../models/noticeBoard");
+const Class = require("../models/class");
+const Attendance = require("../models/attendance");
 const bcrypt = require("bcrypt");
 const { validateMarks, validateMarksUpdate } = require("../utils/validate");
 
@@ -12,6 +14,41 @@ const adminRouter = express.Router();
 adminRouter.get("/", authUser, authorizeRoles("admin"), (req, res) => {
     res.status(200).json({ message: "Welcome to the Admin Dashboard", user: req.user });
 });
+
+// GET dashboard statistics
+adminRouter.get("/dashboard-stats", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
+    const totalStudents = await User.countDocuments({ role: "student" });
+    const totalFaculty = await User.countDocuments({ role: "faculty" });
+    const totalClasses = await Class.countDocuments();
+
+    // Calculate average attendance percentage
+    const attendanceRecords = await Attendance.find();
+    let averageAttendance = 0;
+    if (attendanceRecords.length > 0) {
+        const presentOrLate = attendanceRecords.filter(r => r.status === "present" || r.status === "late").length;
+        averageAttendance = parseFloat(((presentOrLate / attendanceRecords.length) * 100).toFixed(2));
+    }
+
+    const recentMarks = await Marks.find()
+        .populate("student", "name")
+        .populate("subject", "name")
+        .sort({ createdAt: -1 })
+        .limit(5);
+
+    const recentNotices = await Notice.find()
+        .sort({ createdAt: -1 })
+        .limit(5);
+
+    res.status(200).json({
+        totalStudents,
+        totalFaculty,
+        totalClasses,
+        averageAttendance,
+        recentMarks,
+        recentNotices
+    });
+}));
+
 
 // ================= STUDENTS =================
 adminRouter.get("/students", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
