@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { GraduationCap, Users, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
 const roles = [
-  { id: 'student', label: 'Student' },
-  { id: 'faculty', label: 'Faculty' },
-  { id: 'admin', label: 'Admin' },
+  { id: 'student', label: 'Student', icon: <GraduationCap size={16} strokeWidth={1.5} /> },
+  { id: 'faculty', label: 'Faculty', icon: <Users size={16} strokeWidth={1.5} /> },
+  { id: 'admin', label: 'Admin', icon: <ShieldCheck size={16} strokeWidth={1.5} /> },
 ];
 
-/* ── purple palette ── */
-const PURPLE = '#7c3aed';
-const PURPLE_H = '#6d28d9';
-const PURPLE_BG = '#f5f3ff';
+/* ── theme palette ── */
+const THEME_COLOR = '#183B65';
+const THEME_COLOR_H = '#1e487a';
+const THEME_COLOR_BG = '#f0f4f8';
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
@@ -108,17 +109,17 @@ export default function LoginPage() {
           border-radius: 10px;
           border: none;
           cursor: pointer;
-          background: #3b82f6;
+          background: #183B65;
           color: #ffffff;
           font-family: 'Raleway', sans-serif;
           font-size: 0.96rem;
           font-weight: 700;
           letter-spacing: 0.01em;
           transition: background 0.2s, transform 0.15s;
-          box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+          box-shadow: 0 4px 14px rgba(24, 59, 101, 0.35);
         }
         .login-btn:hover {
-          background: #60a5fa;
+          background: #2b5a94;
           transform: translateY(-1px);
         }
         .login-btn:disabled {
@@ -127,7 +128,17 @@ export default function LoginPage() {
           box-shadow: none;
           transform: none;
         }
+        .divider-line {
+          border-left: 1.5px solid #e5e7eb;
+          padding-left: 70px;
+          margin-left: -70px;
+        }
         @media (max-width: 768px) {
+          .divider-line {
+            border-left: none;
+            padding-left: 0;
+            margin-left: 0;
+          }
           .login-container {
             flex-direction: column;
           }
@@ -181,6 +192,7 @@ export default function LoginPage() {
               Please enter your credentials to securely access your SMCS account.
             </p>
 
+            <div className="divider-line">
             {/* Role tabs */}
             <div style={{
               display: 'flex',
@@ -208,9 +220,9 @@ export default function LoginPage() {
                       justifyContent: 'center',
                       gap: '5px',
                       transition: 'all 0.18s ease',
-                      background: active ? PURPLE : '#f9fafb',
+                      background: active ? THEME_COLOR : '#f9fafb',
                       color: active ? '#ffffff' : '#4b5563',
-                      boxShadow: active ? `0 2px 10px ${PURPLE}40` : 'none',
+                      boxShadow: active ? `0 2px 10px ${THEME_COLOR}40` : 'none',
                     }}
                   >
                     <span style={{ fontSize: '0.85rem' }}>{r.icon}</span>
@@ -234,7 +246,7 @@ export default function LoginPage() {
                     onChange={e => setContactNumber(e.target.value)}
                     required
                     style={inputStyle}
-                    onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
+                    onFocus={e => { e.target.style.borderColor = THEME_COLOR; e.target.style.background = '#fff'; }}
                     onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
                   />
                 </div>
@@ -249,7 +261,7 @@ export default function LoginPage() {
                     onChange={e => setEmail(e.target.value)}
                     required
                     style={inputStyle}
-                    onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
+                    onFocus={e => { e.target.style.borderColor = THEME_COLOR; e.target.style.background = '#fff'; }}
                     onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
                   />
                 </div>
@@ -258,7 +270,7 @@ export default function LoginPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                   <label htmlFor="password" style={{ ...labelStyle, marginBottom: 0 }}>Password</label>
-                  <span style={{ fontSize: '0.78rem', color: PURPLE, cursor: 'pointer', fontWeight: 500 }}>
+                  <span style={{ fontSize: '0.78rem', color: THEME_COLOR, cursor: 'pointer', fontWeight: 500 }}>
                     Forgot password?
                   </span>
                 </div>
@@ -271,7 +283,7 @@ export default function LoginPage() {
                     onChange={e => setPassword(e.target.value)}
                     required
                     style={{ ...inputStyle, paddingRight: '42px' }}
-                    onFocus={e => { e.target.style.borderColor = PURPLE; e.target.style.background = '#fff'; }}
+                    onFocus={e => { e.target.style.borderColor = THEME_COLOR; e.target.style.background = '#fff'; }}
                     onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.background = '#f3f4f6'; }}
                   />
                   <button
@@ -285,7 +297,7 @@ export default function LoginPage() {
                     }}
                     aria-label={showPass ? 'Hide password' : 'Show password'}
                   >
-                    {showPass ? '🙈' : '👁️'}
+                    {showPass ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
                   </button>
                 </div>
               </div>
@@ -311,6 +323,7 @@ export default function LoginPage() {
                 {isLoading ? 'Signing in…' : 'Sign In'}
               </button>
             </form>
+            </div>
 
 
             {/* Footer */}
@@ -349,14 +362,14 @@ function CornerFlourish({ position }) {
       ...styles[position],
     }}>
       <svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg" width="140" height="140">
-        <path d="M10 10 Q40 10 40 40 Q40 70 70 70 Q100 70 100 100 Q100 130 130 130" stroke="#7c3aed" strokeWidth="1.5" fill="none" strokeDasharray="4 4" />
+        <path d="M10 10 Q40 10 40 40 Q40 70 70 70 Q100 70 100 100 Q100 130 130 130" stroke="#183B65" strokeWidth="1.5" fill="none" strokeDasharray="4 4" />
         <path d="M30 10 Q50 10 50 30 Q50 60 80 60 Q110 60 110 90 Q110 120 130 120" stroke="#c8991b" strokeWidth="1" fill="none" opacity="0.7" />
-        <circle cx="10" cy="10" r="4" fill="#7c3aed" opacity="0.6" />
-        <circle cx="40" cy="40" r="3" fill="#7c3aed" opacity="0.4" />
+        <circle cx="10" cy="10" r="4" fill="#183B65" opacity="0.6" />
+        <circle cx="40" cy="40" r="3" fill="#183B65" opacity="0.4" />
         <circle cx="70" cy="70" r="3" fill="#c8991b" opacity="0.5" />
-        <circle cx="100" cy="100" r="3" fill="#7c3aed" opacity="0.4" />
+        <circle cx="100" cy="100" r="3" fill="#183B65" opacity="0.4" />
         <path d="M5 25 C15 20 20 30 10 35 C0 40 -5 30 5 25Z" fill="#c8991b" opacity="0.3" />
-        <path d="M25 5 C20 15 30 20 35 10 C40 0 30 -5 25 5Z" fill="#7c3aed" opacity="0.2" />
+        <path d="M25 5 C20 15 30 20 35 10 C40 0 30 -5 25 5Z" fill="#183B65" opacity="0.2" />
         <path d="M15 50 C25 45 30 55 20 60 C10 65 5 55 15 50Z" fill="#c8991b" opacity="0.2" />
       </svg>
     </div>
