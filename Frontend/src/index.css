@@ -32,7 +32,7 @@
   --clr-text-muted: #94a3b8;
 
   /* Sidebar */
-  --sidebar-width: 260px;
+  --sidebar-width: 320px;
   --sidebar-collapsed: 72px;
 
   /* Spacing */
@@ -903,16 +903,18 @@ img {
 }
 .sidebar-brand {
   font-family: var(--font-heading);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--clr-text-primary);
   line-height: 1.2;
+  white-space: nowrap;
 }
 .sidebar-brand-sub {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   color: var(--clr-text-muted);
-  font-weight: 400;
+  font-weight: 500;
   font-family: var(--font-body);
+  white-space: nowrap;
 }
 .sidebar-nav {
   flex: 1;

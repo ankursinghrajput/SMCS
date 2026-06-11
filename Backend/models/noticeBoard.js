@@ -3,6 +3,7 @@ const noticeSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     date: { type: Date, default: Date.now },
-    audience: { type: String, enum: ["all", "student", "faculty"], default: "all" }
+    audience: { type: String, enum: ["all", "student", "faculty"], default: "all" },
+    expiresAt: { type: Date, default: null }   // null = never expires
 }, { timestamps: true });
-module.exports = mongoose.model("Notice", noticeSchema);
+module.exports = mongoose.model("Notice", noticeSchema);

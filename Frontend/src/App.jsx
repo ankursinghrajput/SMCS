@@ -22,8 +22,42 @@ import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 
 function AppContent() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [activePage, setActivePage] = useState('dashboard');
+
+  // ── Auth is still being verified — show a neutral full-screen loader ──
+  // This prevents the login page from flashing before the /api/profile
+  // response comes back on a hard refresh.
+  if (isLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f8fafc',
+        gap: '20px',
+      }}>
+        <img
+          src="/SMCS_logo_nobg_trimmed.png"
+          alt="SMCS"
+          style={{ width: '80px', height: '80px', objectFit: 'contain', opacity: 0.85 }}
+        />
+        <div style={{
+          width: '44px', height: '44px',
+          border: '3px solid #e2e8f0',
+          borderTopColor: '#183B65',
+          borderRadius: '50%',
+          animation: 'spin 0.75s linear infinite',
+        }} />
+        <p style={{ fontSize: '0.85rem', color: '#64748b', fontFamily: 'Inter, sans-serif' }}>
+          Loading…
+        </p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   if (!user) return <LoginPage />;
 

@@ -1,27 +1,29 @@
 import { useAuth } from '../context/AuthContext';
 
+import { Home, Calendar, ClipboardList, Bell, GraduationCap, Users, School, LogOut } from 'lucide-react';
+
 const navConfig = {
   student: [
-    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-    { id: 'attendance', label: 'My Attendance', icon: '📅' },
-    { id: 'marks', label: 'My Marks', icon: '📝' },
-    { id: 'notices', label: 'Notices', icon: '📢', badge: 2 },
+    { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} strokeWidth={1.5} /> },
+    { id: 'attendance', label: 'My Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
+    { id: 'marks', label: 'My Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
+    { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} />, badge: 2 },
   ],
   faculty: [
-    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-    { id: 'students', label: 'Students', icon: '🎓' },
-    { id: 'attendance', label: 'Attendance', icon: '📅' },
-    { id: 'marks', label: 'Marks', icon: '📝' },
-    { id: 'notices', label: 'Notices', icon: '📢', badge: 1 },
+    { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} strokeWidth={1.5} /> },
+    { id: 'students', label: 'Students', icon: <GraduationCap size={20} strokeWidth={1.5} /> },
+    { id: 'attendance', label: 'Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
+    { id: 'marks', label: 'Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
+    { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} />, badge: 1 },
   ],
   admin: [
-    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-    { id: 'students', label: 'Students', icon: '🎓' },
-    { id: 'faculty', label: 'Faculty', icon: '👨‍🏫' },
-    { id: 'attendance', label: 'Attendance', icon: '📅' },
-    { id: 'marks', label: 'Marks', icon: '📝' },
-    { id: 'notices', label: 'Notices', icon: '📢' },
-    { id: 'classes', label: 'Classes', icon: '🏫' },
+    { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} strokeWidth={1.5} /> },
+    { id: 'students', label: 'Students', icon: <GraduationCap size={20} strokeWidth={1.5} /> },
+    { id: 'faculty', label: 'Faculty', icon: <Users size={20} strokeWidth={1.5} /> },
+    { id: 'attendance', label: 'Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
+    { id: 'marks', label: 'Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
+    { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} /> },
+    { id: 'classes', label: 'Classes', icon: <School size={20} strokeWidth={1.5} /> },
   ],
 };
 
@@ -44,13 +46,13 @@ export default function Sidebar({ activePage, setActivePage }) {
       {/* Header */}
       <div className="sidebar-header">
         <img
-          src="/smcs_logo.png"
+          src="/SMCS_logo_nobg_trimmed.png"
           alt="SMCS Logo"
-          style={{ width: '38px', height: '38px', objectFit: 'contain', borderRadius: '6px', flexShrink: 0 }}
+          style={{ width: '85px', height: '85px', objectFit: 'contain', borderRadius: '6px', flexShrink: 0 }}
         />
         <div>
           <div className="sidebar-brand">SMCS</div>
-          <div className="sidebar-brand-sub">Sanjeev Memorial Center</div>
+          <div className="sidebar-brand-sub">Sanjeev Memorial Center School</div>
         </div>
       </div>
 
@@ -94,7 +96,7 @@ export default function Sidebar({ activePage, setActivePage }) {
             title="Logout"
             aria-label="Logout"
           >
-            🚪
+            <LogOut size={20} strokeWidth={1.5} />
           </button>
         </div>
       </div>

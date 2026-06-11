@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Calendar, BookOpen, AlertTriangle, GraduationCap, Users, School, ClipboardList, Megaphone } from 'lucide-react';
 
 // Circular Progress Component
 function CircularProgress({ percentage, size = 80, color = 'var(--clr-primary)' }) {
@@ -72,7 +73,7 @@ function StudentDashboard({ user }) {
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '4px' }}>Good Morning,</p>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 800, marginBottom: '8px' }}>
-            {user?.name} 👋
+            {user?.name}
           </h2>
           <p style={{ opacity: 0.75, fontSize: '0.88rem' }}>
             You have <strong style={{ color: '#fbbf24' }}>{attendanceWarnings.length} subject{attendanceWarnings.length !== 1 ? 's' : ''}</strong> with low attendance. Stay on track!
@@ -83,9 +84,9 @@ function StudentDashboard({ user }) {
       {/* Stats */}
       <div className="stats-grid">
         {[
-          { label: 'Overall Attendance', value: `${overallAttendance}%`, icon: '📅', color: '#e8f4fd', iconBg: '#1a7fce' },
-          { label: 'Subjects Enrolled', value: attendanceDetails.length, icon: '📚', color: '#d1fae5', iconBg: '#10b981' },
-          { label: 'Attendance Warnings', value: attendanceWarnings.length, icon: '⚠️', color: '#fef3c7', iconBg: '#f59e0b' },
+          { label: 'Overall Attendance', value: `${overallAttendance}%`, icon: <Calendar size={24} strokeWidth={1.5} />, color: '#e8f4fd', iconBg: '#1a7fce' },
+          { label: 'Subjects Enrolled', value: attendanceDetails.length, icon: <BookOpen size={24} strokeWidth={1.5} />, color: '#d1fae5', iconBg: '#10b981' },
+          { label: 'Attendance Warnings', value: attendanceWarnings.length, icon: <AlertTriangle size={24} strokeWidth={1.5} />, color: '#fef3c7', iconBg: '#f59e0b' },
         ].map((s, i) => (
           <div className="stat-card" key={i}>
             <div className="stat-icon" style={{ background: s.color }}>
@@ -104,9 +105,13 @@ function StudentDashboard({ user }) {
         {/* Attendance Summary */}
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">📅 Attendance Summary</h3>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Calendar size={20} strokeWidth={1.5} /> Attendance Summary
+            </h3>
             {attendanceWarnings.length > 0 && (
-              <span className="badge badge-danger">⚠️ {attendanceWarnings.length} Low</span>
+              <span className="badge badge-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <AlertTriangle size={14} strokeWidth={2} /> {attendanceWarnings.length} Low
+              </span>
             )}
           </div>
           {attendanceDetails.length === 0 ? (
@@ -165,10 +170,10 @@ function AdminDashboard({ user }) {
   const { totalStudents = 0, totalFaculty = 0, totalClasses = 0, averageAttendance = 0, recentMarks = [], recentNotices = [] } = stats || {};
 
   const cards = [
-    { label: 'Total Students', value: totalStudents, icon: '🎓', color: '#e8f4fd' },
-    { label: 'Total Faculty', value: totalFaculty, icon: '👨‍🏫', color: '#d1fae5' },
-    { label: 'Total Classes', value: totalClasses, icon: '🏫', color: '#ede9fe' },
-    { label: 'Avg Attendance', value: `${averageAttendance}%`, icon: '📅', color: '#fef3c7' },
+    { label: 'Total Students', value: totalStudents, icon: <GraduationCap size={24} strokeWidth={1.5} />, color: '#e8f4fd' },
+    { label: 'Total Faculty', value: totalFaculty, icon: <Users size={24} strokeWidth={1.5} />, color: '#d1fae5' },
+    { label: 'Total Classes', value: totalClasses, icon: <School size={24} strokeWidth={1.5} />, color: '#ede9fe' },
+    { label: 'Avg Attendance', value: `${averageAttendance}%`, icon: <Calendar size={24} strokeWidth={1.5} />, color: '#fef3c7' },
   ];
 
   return (
@@ -183,7 +188,7 @@ function AdminDashboard({ user }) {
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '4px' }}>Welcome back,</p>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px' }}>
-            {user?.name} 🛡️
+            {user?.name}
           </h2>
           <p style={{ opacity: 0.75, fontSize: '0.88rem' }}>
             Managing {totalStudents} students across {totalClasses} classes
@@ -211,7 +216,9 @@ function AdminDashboard({ user }) {
         {/* Recent Marks */}
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">📝 Recent Marks Uploaded</h3>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ClipboardList size={20} strokeWidth={1.5} /> Recent Marks Uploaded
+            </h3>
           </div>
           <div className="table-wrapper">
             {recentMarks.length === 0 ? (
@@ -256,7 +263,9 @@ function AdminDashboard({ user }) {
         {/* Notices */}
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">📢 Recent Notices</h3>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Megaphone size={20} strokeWidth={1.5} /> Recent Notices
+            </h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {recentNotices.length === 0 ? (

@@ -3,6 +3,7 @@ const asyncHandler = require("express-async-handler");
 const { authUser, authorizeRoles } = require("../middlewares/auth");
 const Class = require("../models/class");
 const Subject = require("../models/subject");
+const User = require("../models/user");
 
 const academicRouter = express.Router();
 
@@ -16,7 +17,24 @@ academicRouter.post("/class", authUser, authorizeRoles("admin"), asyncHandler(as
 
 academicRouter.get("/classes", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
     const classes = await Class.find();
-    res.status(200).json({ message: "Classes retrieved", classes });
+    // Attach student count to each class
+    const classesWithCount = await Promise.all(
+        classes.map(async (cls) => {
+            const studentCount = await User.countDocuments({ role: "student", classId: cls._id });
+            return { ...cls.toObject(), studentCount };
+        })
+    );
+    res.status(200).json({ message: "Classes retrieved", classes: classesWithCount });
+}));
+
+// GET students in a specific class (admin + faculty)
+academicRouter.get("/class/:id/students", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const cls = await Class.findById(id);
+    if (!cls) return res.status(404).json({ message: "Class not found" });
+
+    const students = await User.find({ role: "student", classId: id }).select("-password");
+    res.status(200).json({ message: "Students retrieved", students, class: cls });
 }));
 
 // ================= SUBJECTS =================

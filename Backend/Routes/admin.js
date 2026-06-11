@@ -56,9 +56,13 @@ adminRouter.get("/students", authUser, authorizeRoles("admin", "faculty"), async
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const totalStudents = await User.countDocuments({ role: "student" });
-    const allStudents = await User.find({ role: "student" })
+    const filter = { role: "student" };
+    if (req.query.classId) filter.classId = req.query.classId;
+
+    const totalStudents = await User.countDocuments(filter);
+    const allStudents = await User.find(filter)
         .select("-password")
+        .populate("classId", "name section")
         .skip(skip)
         .limit(limit);
 
@@ -75,31 +79,61 @@ adminRouter.get("/students", authUser, authorizeRoles("admin", "faculty"), async
 }));
 
 adminRouter.post("/student", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
-    const { name, email, password, contactNumber } = req.body;
+    const { name, email, password, contactNumber, classId } = req.body;
     if (!name || !password || !contactNumber) {
         return res.status(400).json({ message: "Name, password, and contact number are required" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const student = new User({ name, email, password: hashedPassword, contactNumber, role: "student" });
+    const student = new User({ name, email, password: hashedPassword, contactNumber, role: "student", classId: classId || undefined });
     await student.save();
     res.status(201).json({ message: "Student created successfully" });
 }));
 
 adminRouter.patch("/student/:id", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { name, email, password, contactNumber } = req.body;
+    const { name, email, password, contactNumber, classId } = req.body;
     const student = await User.findById(id);
     if (!student) return res.status(404).json({ message: "Student not found" });
 
     student.name = name || student.name;
     student.email = email || student.email;
     student.contactNumber = contactNumber || student.contactNumber;
+    if (classId !== undefined) student.classId = classId || null;
     if (password) {
         student.password = await bcrypt.hash(password, 10);
     }
 
     await student.save();
     res.status(200).json({ message: "Student updated successfully" });
+}));
+
+// ===== CLASS MEMBERSHIP (Admin only) =====
+// Add a student to a class
+adminRouter.patch("/class/:classId/add-student", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
+    const { classId } = req.params;
+    const { studentId } = req.body;
+    if (!studentId) return res.status(400).json({ message: "studentId is required" });
+
+    const student = await User.findOne({ _id: studentId, role: "student" });
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    student.classId = classId;
+    await student.save();
+    res.status(200).json({ message: "Student added to class successfully" });
+}));
+
+// Remove a student from a class
+adminRouter.patch("/class/:classId/remove-student", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
+    const { classId } = req.params;
+    const { studentId } = req.body;
+    if (!studentId) return res.status(400).json({ message: "studentId is required" });
+
+    const student = await User.findOne({ _id: studentId, role: "student", classId });
+    if (!student) return res.status(404).json({ message: "Student not found in this class" });
+
+    student.classId = null;
+    await student.save();
+    res.status(200).json({ message: "Student removed from class successfully" });
 }));
 
 adminRouter.delete("/student/:id", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
@@ -312,8 +346,13 @@ adminRouter.get("/marks/analytics", authUser, authorizeRoles("admin", "faculty")
 // ================= NOTICES =============
 
 adminRouter.post("/notice", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
-    const { title, description, audience } = req.body;
-    const notice = new Notice({ title, description, audience });
+    const { title, description, audience, durationDays } = req.body;
+    let expiresAt = null;
+    if (durationDays && Number(durationDays) > 0) {
+        expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + Number(durationDays));
+    }
+    const notice = new Notice({ title, description, audience, expiresAt });
     await notice.save();
     res.status(201).json({ message: "Notice created successfully", notice });
 }));
@@ -325,6 +364,12 @@ adminRouter.get("/notice", authUser, authorizeRoles("admin", "faculty", "student
     } else if (req.user.role === "faculty") {
         filter = { audience: { $in: ["all", "faculty"] } };
     }
+
+    // Exclude expired notices (expiresAt is set and in the past)
+    filter.$or = [
+        { expiresAt: null },
+        { expiresAt: { $gt: new Date() } }
+    ];
 
     const notices = await Notice.find(filter).sort({ createdAt: -1 });
     res.status(200).json({ message: "Notices retrieved", notices });
@@ -348,12 +393,23 @@ adminRouter.get("/notice/:id", authUser, authorizeRoles("admin", "faculty", "stu
 
 adminRouter.patch("/notice/:id", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { title, description, audience } = req.body;
+    const { title, description, audience, durationDays } = req.body;
     const notice = await Notice.findById(id);
     if (!notice) return res.status(404).json({ message: "Notice not found" });
     notice.title = title || notice.title;
     notice.description = description || notice.description;
     if (audience) notice.audience = audience;
+    // Update expiry if durationDays is provided
+    if (durationDays !== undefined) {
+        if (Number(durationDays) > 0) {
+            // Re-calculate from original createdAt so editing doesn't reset the clock
+            const base = new Date(notice.createdAt);
+            base.setDate(base.getDate() + Number(durationDays));
+            notice.expiresAt = base;
+        } else {
+            notice.expiresAt = null; // 0 or empty = never expires
+        }
+    }
     await notice.save();
     res.status(200).json({ message: "Notice updated successfully", notice });
 }));
