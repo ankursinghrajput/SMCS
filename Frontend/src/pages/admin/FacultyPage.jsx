@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Users, Search, Pencil, Trash2, Plus } from 'lucide-react';
 
 export default function FacultyPage() {
   const [search, setSearch] = useState('');
@@ -103,11 +104,13 @@ export default function FacultyPage() {
     <div className="fade-in-up">
       <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="page-title">👨‍🏫 Faculty</h1>
+          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Users size={28} strokeWidth={1.5} /> Faculty
+          </h1>
           <p className="page-subtitle">Manage teaching staff</p>
         </div>
         <button id="add-faculty-btn" className="btn btn-primary" onClick={handleOpenAdd}>
-          + Add Faculty
+          <Plus size={16} strokeWidth={2} style={{ marginRight: '4px' }} /> Add Faculty
         </button>
       </div>
 
@@ -116,11 +119,11 @@ export default function FacultyPage() {
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading faculty...</div>
       ) : filtered.length === 0 ? (
         <div className="empty-state" style={{ marginBottom: '24px' }}>
-          <div className="empty-state-icon">🔍</div>
+          <div className="empty-state-icon"><Search size={40} strokeWidth={1} /></div>
           <p>No faculty found matching "{search}"</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        <div className="faculty-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', marginBottom: '24px' }}>
           {filtered.map((f, i) => (
             <div className="card" key={i} style={{ padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
@@ -139,8 +142,12 @@ export default function FacultyPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button id={`edit-faculty-${f._id}`} className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => handleOpenEdit(f)}>✏️ Edit</button>
-                <button id={`delete-faculty-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id)}>🗑️</button>
+                <button id={`edit-faculty-${f._id}`} className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => handleOpenEdit(f)}>
+                  <Pencil size={13} strokeWidth={1.5} style={{ marginRight: '4px' }} />Edit
+                </button>
+                <button id={`delete-faculty-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id)}>
+                  <Trash2 size={13} strokeWidth={1.5} />
+                </button>
               </div>
             </div>
           ))}
@@ -152,7 +159,7 @@ export default function FacultyPage() {
         <div className="card-header">
           <h3 className="card-title">Faculty List</h3>
           <div className="search-wrap">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"><Search size={16} /></span>
             <input
               id="faculty-search"
               className="form-input"
@@ -166,7 +173,7 @@ export default function FacultyPage() {
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading list...</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">🔍</div>
+            <div className="empty-state-icon"><Search size={40} strokeWidth={1} /></div>
             <p>No faculty found matching "{search}"</p>
           </div>
         ) : (
@@ -195,8 +202,12 @@ export default function FacultyPage() {
                     <td>{f.contactNumber}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        <button id={`edit-faculty-row-${f._id}`} className="btn btn-outline btn-sm" onClick={() => handleOpenEdit(f)}>✏️ Edit</button>
-                        <button id={`delete-faculty-row-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id)}>🗑️</button>
+                        <button id={`edit-faculty-row-${f._id}`} className="btn btn-outline btn-sm" onClick={() => handleOpenEdit(f)}>
+                          <Pencil size={13} strokeWidth={1.5} style={{ marginRight: '4px' }} />Edit
+                        </button>
+                        <button id={`delete-faculty-row-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id)}>
+                          <Trash2 size={13} strokeWidth={1.5} />
+                        </button>
                       </div>
                     </td>
                   </tr>

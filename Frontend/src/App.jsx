@@ -24,6 +24,7 @@ import Topbar from './components/Topbar';
 function AppContent() {
   const { user, isLoading } = useAuth();
   const [activePage, setActivePage] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ── Auth is still being verified — show a neutral full-screen loader ──
   // This prevents the login page from flashing before the /api/profile
@@ -94,9 +95,14 @@ function AppContent() {
 
   return (
     <div className="app-layout">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} />
+      <Sidebar
+        activePage={activePage}
+        setActivePage={setActivePage}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <div className="main-content">
-        <Topbar activePage={activePage} />
+        <Topbar activePage={activePage} onMenuClick={() => setSidebarOpen(true)} />
         <main className="page-wrapper" role="main">
           {renderPage()}
         </main>

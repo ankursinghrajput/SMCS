@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GraduationCap, Search, Pencil, Trash2, Plus } from 'lucide-react';
+import { GraduationCap, Search, Pencil, Trash2, Plus, ChevronDown } from 'lucide-react';
 
 export default function StudentsPage() {
   const [search, setSearch] = useState('');
@@ -9,6 +9,10 @@ export default function StudentsPage() {
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // View mode: 'all' | 'class'
+  const [viewMode, setViewMode] = useState('all');
+  const [selectedClassId, setSelectedClassId] = useState('');
 
   const fetchStudents = async () => {
     try {
@@ -41,10 +45,20 @@ export default function StudentsPage() {
     fetchClasses();
   }, []);
 
-  const filtered = students.filter(s =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    (s.email && s.email.toLowerCase().includes(search.toLowerCase()))
-  );
+  // Filter students by search + class if class-wise mode is active
+  const filtered = students.filter(s => {
+    const matchesSearch =
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      (s.email && s.email.toLowerCase().includes(search.toLowerCase()));
+
+    if (viewMode === 'class' && selectedClassId) {
+      const studentClassId = s.classId?._id || s.classId || '';
+      return matchesSearch && studentClassId === selectedClassId;
+    }
+    return matchesSearch;
+  });
+
+  const selectedClassObj = classes.find(c => c._id === selectedClassId);
 
   const handleOpenAdd = () => {
     setEditingStudent(null);
@@ -116,6 +130,12 @@ export default function StudentsPage() {
     }
   };
 
+  const handleViewModeChange = (e) => {
+    setViewMode(e.target.value);
+    setSelectedClassId('');
+    setSearch('');
+  };
+
   return (
     <div className="fade-in-up">
       <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
@@ -125,9 +145,90 @@ export default function StudentsPage() {
           </h1>
           <p className="page-subtitle">Manage all enrolled students</p>
         </div>
-        <button id="add-student-btn" className="btn btn-primary" onClick={handleOpenAdd}>
-          <Plus size={16} strokeWidth={2} style={{ marginRight: '4px' }} /> Add Student
-        </button>
+
+        {/* Right side: View controls + Add button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* View Mode Dropdown */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <select
+              id="view-mode-select"
+              className="form-select"
+              value={viewMode}
+              onChange={handleViewModeChange}
+              style={{
+                paddingRight: '36px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                appearance: 'none',
+                minWidth: '160px',
+                background: 'var(--clr-surface)',
+                border: '1.5px solid var(--clr-border)',
+                borderRadius: '10px',
+                height: '40px',
+                color: 'var(--clr-text)',
+                fontSize: '0.9rem',
+              }}
+            >
+              <option value="all">All Students</option>
+              <option value="class">Class-wise</option>
+            </select>
+            <ChevronDown
+              size={15}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                pointerEvents: 'none',
+                color: 'var(--clr-text-secondary)',
+              }}
+            />
+          </div>
+
+          {/* Class Selector — only visible when class-wise is selected */}
+          {viewMode === 'class' && (
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', animation: 'fadeIn 0.2s ease' }}>
+              <select
+                id="class-filter-select"
+                className="form-select"
+                value={selectedClassId}
+                onChange={e => setSelectedClassId(e.target.value)}
+                style={{
+                  paddingRight: '36px',
+                  minWidth: '170px',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  background: 'var(--clr-surface)',
+                  border: '1.5px solid var(--clr-primary, #6366f1)',
+                  borderRadius: '10px',
+                  height: '40px',
+                  color: 'var(--clr-text)',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                }}
+              >
+                <option value="">— Select Class —</option>
+                {classes.map(cls => (
+                  <option key={cls._id} value={cls._id}>
+                    {cls.name}{cls.section ? ` - ${cls.section}` : ''}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={15}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  pointerEvents: 'none',
+                  color: 'var(--clr-text-secondary)',
+                }}
+              />
+            </div>
+          )}
+
+          {/* Add Student button — always visible */}
+          <button id="add-student-btn" className="btn btn-primary" onClick={handleOpenAdd}>
+            <Plus size={16} strokeWidth={2} style={{ marginRight: '4px' }} /> Add Student
+          </button>
+        </div>
       </div>
 
       {/* Stats Row */}
@@ -135,10 +236,13 @@ export default function StudentsPage() {
         {[
           { label: 'Total Students', value: students.length, color: '#e8f4fd' },
           { label: 'Classes Active', value: classes.length, color: '#d1fae5' },
+          ...(viewMode === 'class' && selectedClassId
+            ? [{ label: `Students in ${selectedClassObj?.name || 'Class'}${selectedClassObj?.section ? ' - ' + selectedClassObj.section : ''}`, value: filtered.length, color: '#ede9fe' }]
+            : []),
         ].map((s, i) => (
           <div className="stat-card" key={i}>
             <div className="stat-icon" style={{ background: s.color }}>
-              <GraduationCap size={24} strokeWidth={1.5} style={{ color: i === 0 ? '#1a7fce' : '#10b981' }} />
+              <GraduationCap size={24} strokeWidth={1.5} style={{ color: i === 0 ? '#1a7fce' : i === 1 ? '#10b981' : '#7c3aed' }} />
             </div>
             <div className="stat-info">
               <div className="stat-value">{s.value}</div>
@@ -151,7 +255,11 @@ export default function StudentsPage() {
       {/* Search + Table */}
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">All Students</h3>
+          <h3 className="card-title">
+            {viewMode === 'class' && selectedClassObj
+              ? `${selectedClassObj.name}${selectedClassObj.section ? ' - ' + selectedClassObj.section : ''} — Students`
+              : 'All Students'}
+          </h3>
           <div className="search-wrap">
             <span className="search-icon"><Search size={16} /></span>
             <input
@@ -163,12 +271,18 @@ export default function StudentsPage() {
             />
           </div>
         </div>
+
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading students...</div>
+        ) : viewMode === 'class' && !selectedClassId ? (
+          <div className="empty-state">
+            <div className="empty-state-icon"><GraduationCap size={40} strokeWidth={1} /></div>
+            <p>Please select a class to view students.</p>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon"><Search size={40} strokeWidth={1} /></div>
-            <p>No students found matching "{search}"</p>
+            <p>{search ? `No students found matching "${search}"` : 'No students in this class yet.'}</p>
           </div>
         ) : (
           <div className="table-wrapper">

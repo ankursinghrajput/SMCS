@@ -1,6 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-
-import { Home, Calendar, ClipboardList, Bell, GraduationCap, Users, School, LogOut } from 'lucide-react';
+import { Home, Calendar, ClipboardList, Bell, GraduationCap, Users, School, LogOut, X } from 'lucide-react';
 
 const navConfig = {
   student: [
@@ -33,7 +32,7 @@ const avatarColors = {
   admin: 'avatar-accent',
 };
 
-export default function Sidebar({ activePage, setActivePage }) {
+export default function Sidebar({ activePage, setActivePage, isOpen, onClose }) {
   const { user, logout } = useAuth();
   const navItems = navConfig[user?.role] || navConfig.student;
 
@@ -41,65 +40,93 @@ export default function Sidebar({ activePage, setActivePage }) {
     ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'U';
 
+  const handleNavClick = (id) => {
+    setActivePage(id);
+    if (onClose) onClose(); // close drawer on mobile after navigation
+  };
+
   return (
-    <aside className="sidebar" role="navigation" aria-label="Main navigation">
-      {/* Header */}
-      <div className="sidebar-header">
-        <img
-          src="/SMCS_logo_nobg_trimmed.png"
-          alt="SMCS Logo"
-          style={{ width: '85px', height: '85px', objectFit: 'contain', borderRadius: '6px', flexShrink: 0 }}
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={onClose}
+          aria-hidden="true"
         />
-        <div>
-          <div className="sidebar-brand">SMCS</div>
-          <div className="sidebar-brand-sub">Sanjeev Memorial Center School</div>
-        </div>
-      </div>
+      )}
 
-      {/* Navigation */}
-      <nav className="sidebar-nav">
-        <div className="sidebar-section-label">Menu</div>
-        {navItems.map(item => (
-          <div
-            key={item.id}
-            id={`nav-${item.id}`}
-            role="button"
-            tabIndex={0}
-            className={`nav-item${activePage === item.id ? ' active' : ''}`}
-            onClick={() => setActivePage(item.id)}
-            onKeyDown={e => e.key === 'Enter' && setActivePage(item.id)}
-            aria-current={activePage === item.id ? 'page' : undefined}
-          >
-            <span className="nav-icon" aria-hidden="true">{item.icon}</span>
-            <span>{item.label}</span>
-            {item.badge && <span className="nav-badge">{item.badge}</span>}
+      <aside
+        className={`sidebar${isOpen ? ' sidebar-open' : ''}`}
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        {/* Header */}
+        <div className="sidebar-header">
+          <img
+            src="/SMCS_logo_nobg_trimmed.png"
+            alt="SMCS Logo"
+            style={{ width: '85px', height: '85px', objectFit: 'contain', borderRadius: '6px', flexShrink: 0 }}
+          />
+          <div style={{ flex: 1 }}>
+            <div className="sidebar-brand">SMCS</div>
+            <div className="sidebar-brand-sub">Sanjeev Memorial Center School</div>
           </div>
-        ))}
-      </nav>
-
-      {/* User Info / Logout */}
-      <div className="sidebar-footer">
-        <div className="sidebar-user" id="sidebar-user-menu">
-          <div className={`avatar ${avatarColors[user?.role] || 'avatar-primary'}`}>
-            {initials}
-          </div>
-          <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{user?.name || 'User'}</div>
-            <div className="sidebar-user-role" style={{ textTransform: 'capitalize' }}>
-              {user?.role}
-            </div>
-          </div>
+          {/* Close button — only visible on mobile */}
           <button
-            className="btn-icon"
-            onClick={logout}
-            id="logout-btn"
-            title="Logout"
-            aria-label="Logout"
+            className="sidebar-close-btn"
+            onClick={onClose}
+            aria-label="Close menu"
           >
-            <LogOut size={20} strokeWidth={1.5} />
+            <X size={20} strokeWidth={2} />
           </button>
         </div>
-      </div>
-    </aside>
+
+        {/* Navigation */}
+        <nav className="sidebar-nav">
+          <div className="sidebar-section-label">Menu</div>
+          {navItems.map(item => (
+            <div
+              key={item.id}
+              id={`nav-${item.id}`}
+              role="button"
+              tabIndex={0}
+              className={`nav-item${activePage === item.id ? ' active' : ''}`}
+              onClick={() => handleNavClick(item.id)}
+              onKeyDown={e => e.key === 'Enter' && handleNavClick(item.id)}
+              aria-current={activePage === item.id ? 'page' : undefined}
+            >
+              <span className="nav-icon" aria-hidden="true">{item.icon}</span>
+              <span>{item.label}</span>
+              {item.badge && <span className="nav-badge">{item.badge}</span>}
+            </div>
+          ))}
+        </nav>
+
+        {/* User Info / Logout */}
+        <div className="sidebar-footer">
+          <div className="sidebar-user" id="sidebar-user-menu">
+            <div className={`avatar ${avatarColors[user?.role] || 'avatar-primary'}`}>
+              {initials}
+            </div>
+            <div className="sidebar-user-info">
+              <div className="sidebar-user-name">{user?.name || 'User'}</div>
+              <div className="sidebar-user-role" style={{ textTransform: 'capitalize' }}>
+                {user?.role}
+              </div>
+            </div>
+            <button
+              className="btn-icon"
+              onClick={logout}
+              id="logout-btn"
+              title="Logout"
+              aria-label="Logout"
+            >
+              <LogOut size={20} strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

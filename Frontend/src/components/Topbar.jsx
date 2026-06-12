@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext';
+import { Menu } from 'lucide-react';
 
-export default function Topbar({ activePage }) {
+export default function Topbar({ activePage, onMenuClick }) {
   const { user } = useAuth();
 
   const pageTitles = {
@@ -26,20 +27,32 @@ export default function Topbar({ activePage }) {
 
   return (
     <header className="topbar" role="banner">
-      <div>
-        <h1 style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: '1.1rem',
-          fontWeight: 700,
-          color: 'var(--clr-text-primary)'
-        }}>
-          {pageTitles[activePage] || 'SMCS'}
-        </h1>
-        <p style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', marginTop: '1px' }}>{now}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Hamburger — only visible on mobile */}
+        <button
+          id="mobile-menu-btn"
+          className="topbar-hamburger"
+          onClick={onMenuClick}
+          aria-label="Open navigation menu"
+        >
+          <Menu size={22} strokeWidth={2} />
+        </button>
+
+        <div>
+          <h1 style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: '1.1rem',
+            fontWeight: 700,
+            color: 'var(--clr-text-primary)'
+          }}>
+            {pageTitles[activePage] || 'SMCS'}
+          </h1>
+          <p className="topbar-date" style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', marginTop: '1px' }}>{now}</p>
+        </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {/* Greeting */}
+        {/* User greeting */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '10px',
           background: 'var(--clr-bg)', borderRadius: 'var(--radius-md)',
@@ -55,7 +68,7 @@ export default function Topbar({ activePage }) {
           }}>
             {initials}
           </div>
-          <div>
+          <div className="topbar-user-info">
             <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--clr-text-primary)' }}>
               {user?.name}
             </div>
