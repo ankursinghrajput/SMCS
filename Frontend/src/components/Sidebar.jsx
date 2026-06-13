@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import { Home, Calendar, ClipboardList, Bell, GraduationCap, Users, School, LogOut, X } from 'lucide-react';
+import { Home, Calendar, ClipboardList, Bell, GraduationCap, Users, School, LogOut, X, BookOpen } from 'lucide-react';
 
 const navConfig = {
   student: [
@@ -19,10 +19,11 @@ const navConfig = {
     { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} strokeWidth={1.5} /> },
     { id: 'students', label: 'Students', icon: <GraduationCap size={20} strokeWidth={1.5} /> },
     { id: 'faculty', label: 'Faculty', icon: <Users size={20} strokeWidth={1.5} /> },
+    { id: 'classes', label: 'Classes', icon: <School size={20} strokeWidth={1.5} /> },
+    { id: 'subjects', label: 'Subjects', icon: <BookOpen size={20} strokeWidth={1.5} /> },
     { id: 'attendance', label: 'Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
     { id: 'marks', label: 'Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
     { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} /> },
-    { id: 'classes', label: 'Classes', icon: <School size={20} strokeWidth={1.5} /> },
   ],
 };
 

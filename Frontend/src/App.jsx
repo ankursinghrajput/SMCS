@@ -16,6 +16,7 @@ import FacultyPage from './pages/admin/FacultyPage';
 import AdminMarksPage from './pages/admin/MarksPage';
 import AdminAttendancePage from './pages/admin/AttendancePage';
 import ClassesPage from './pages/admin/ClassesPage';
+import SubjectsPage from './pages/admin/SubjectsPage';
 
 // Layout
 import Sidebar from './components/Sidebar';
@@ -87,6 +88,9 @@ function AppContent() {
 
       case 'classes':
         return <ClassesPage />;
+
+      case 'subjects':
+        return <SubjectsPage />;
 
       default:
         return <DashboardPage />;
