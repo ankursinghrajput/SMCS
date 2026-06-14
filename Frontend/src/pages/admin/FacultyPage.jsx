@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, Pencil, Trash2, Plus } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
+
+const validateContact = (val) => /^[0-9]{10}$/.test(val);
 
 export default function FacultyPage() {
   const [search, setSearch] = useState('');
@@ -7,7 +9,9 @@ export default function FacultyPage() {
   const [editingFaculty, setEditingFaculty] = useState(null);
   const [faculty, setFaculty] = useState([]);
   const [form, setForm] = useState({ name: '', email: '', contactNumber: '', password: '' });
+  const [contactError, setContactError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   const fetchFaculty = async () => {
     try {
@@ -35,6 +39,8 @@ export default function FacultyPage() {
   const handleOpenAdd = () => {
     setEditingFaculty(null);
     setForm({ name: '', email: '', contactNumber: '', password: '' });
+    setContactError('');
+    setShowPassword(false);
     setShowModal(true);
   };
 
@@ -46,11 +52,17 @@ export default function FacultyPage() {
       contactNumber: f.contactNumber || '',
       password: ''
     });
+    setContactError('');
+    setShowPassword(false);
     setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateContact(form.contactNumber)) {
+      setContactError('Contact number must be exactly 10 digits.');
+      return;
+    }
     try {
       const url = editingFaculty
         ? `/api/admin/faculty/${editingFaculty._id}`
@@ -239,13 +251,63 @@ export default function FacultyPage() {
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="faculty-contact">Contact Number *</label>
-                <input id="faculty-contact" type="tel" className="form-input" placeholder="10-digit number" required
-                  value={form.contactNumber} onChange={e => setForm(f => ({ ...f, contactNumber: e.target.value }))} />
+                <input
+                  id="faculty-contact"
+                  type="tel"
+                  className={`form-input${contactError ? ' input-error' : ''}`}
+                  placeholder="10-digit number"
+                  required
+                  maxLength={10}
+                  inputMode="numeric"
+                  pattern="[0-9]{10}"
+                  value={form.contactNumber}
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setForm(f => ({ ...f, contactNumber: val }));
+                    setContactError(val.length > 0 && val.length < 10 ? 'Contact number must be exactly 10 digits.' : '');
+                  }}
+                />
+                {contactError && (
+                  <span style={{ color: 'var(--clr-danger)', fontSize: '0.75rem', marginTop: '4px', display: 'block' }}>
+                    {contactError}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="faculty-password">Password {editingFaculty ? '(Leave blank to keep current)' : '*'}</label>
-                <input id="faculty-password" type="password" className="form-input" placeholder="Password" required={!editingFaculty}
-                  value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="faculty-password"
+                    type={showPassword ? 'text' : 'password'}
+                    className="form-input"
+                    placeholder="Password"
+                    required={!editingFaculty}
+                    value={form.password}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                    style={{ paddingRight: '40px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--clr-text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '4px',
+                      zIndex: 2
+                    }}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={17} strokeWidth={1.5} /> : <Eye size={17} strokeWidth={1.5} />}
+                  </button>
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>

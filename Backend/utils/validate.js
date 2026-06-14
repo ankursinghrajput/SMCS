@@ -103,4 +103,13 @@ const validateMarksUpdate = asyncHandler(async (req, res, next) => {
     next();
 });
 
-module.exports = { validateLogIn, validateAttendance, validateMarks, validateMarksUpdate };
+const validateContactNumber = asyncHandler(async (req, res, next) => {
+    const { contactNumber } = req.body;
+    if (contactNumber && !validator.isLength(contactNumber, { min: 10, max: 10 })) {
+        return res.status(400).json({ message: "Contact number must be 10 digits" });
+    }
+    next();
+});
+
+
+module.exports = { validateLogIn, validateAttendance, validateMarks, validateMarksUpdate, validateContactNumber };

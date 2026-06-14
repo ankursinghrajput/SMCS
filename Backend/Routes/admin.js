@@ -7,7 +7,7 @@ const Notice = require("../models/noticeBoard");
 const Class = require("../models/class");
 const Attendance = require("../models/attendance");
 const bcrypt = require("bcrypt");
-const { validateMarks, validateMarksUpdate } = require("../utils/validate");
+const { validateMarks, validateMarksUpdate, validateContactNumber } = require("../utils/validate");
 
 const adminRouter = express.Router();
 
@@ -78,7 +78,7 @@ adminRouter.get("/students", authUser, authorizeRoles("admin", "faculty"), async
     });
 }));
 
-adminRouter.post("/student", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
+adminRouter.post("/student", authUser, validateContactNumber, authorizeRoles("admin"), asyncHandler(async (req, res) => {
     const { name, email, password, contactNumber, classId } = req.body;
     if (!name || !password || !contactNumber) {
         return res.status(400).json({ message: "Name, password, and contact number are required" });

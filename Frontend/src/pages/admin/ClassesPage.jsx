@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
-import { School, Users, Plus, X, Trash2, UserPlus } from 'lucide-react';
+import { School, Users, Plus, X, Trash2, UserPlus, Pencil } from 'lucide-react';
 
 export default function ClassesPage() {
   const { user } = useAuth();
@@ -8,7 +9,10 @@ export default function ClassesPage() {
 
   const [classes, setClasses] = useState([]);
   const [showAddClassModal, setShowAddClassModal] = useState(false);
+  const [showEditClassModal, setShowEditClassModal] = useState(false);
+  const [editingClass, setEditingClass] = useState(null);
   const [form, setForm] = useState({ name: '', section: '' });
+  const [formEdit, setFormEdit] = useState({ name: '', section: '' });
   const [loading, setLoading] = useState(true);
 
   // Students modal state
@@ -53,6 +57,62 @@ export default function ClassesPage() {
       } else {
         const errData = await res.json();
         alert(errData.message || 'Failed to add class');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred');
+    }
+  };
+
+  const handleOpenEdit = (cls) => {
+    setEditingClass(cls);
+    setFormEdit({ name: cls.name, section: cls.section || '' });
+    setShowEditClassModal(true);
+  };
+
+  const handleEditClass = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`/api/academic/class/${editingClass._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formEdit),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        setFormEdit({ name: '', section: '' });
+        setShowEditClassModal(false);
+        setEditingClass(null);
+        await fetchClasses();
+      } else {
+        const errData = await res.json();
+        alert(errData.message || 'Failed to update class');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred');
+    }
+  };
+
+  const [classToDelete, setClassToDelete] = useState(null);
+
+  const handleDeleteClassClick = (id) => {
+    setClassToDelete(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!classToDelete) return;
+    try {
+      const res = await fetch(`/api/academic/class/${classToDelete}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        setClassToDelete(null);
+        await fetchClasses();
+      } else {
+        const errData = await res.json();
+        alert(errData.message || 'Failed to delete class');
       }
     } catch (err) {
       console.error(err);
@@ -187,24 +247,70 @@ export default function ClassesPage() {
                 <div style={{ background: 'rgba(255,255,255,0.18)', borderRadius: '10px', padding: '10px', marginBottom: '14px', width: 'fit-content' }}>
                   <School size={26} strokeWidth={1.5} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.2)', borderRadius: '20px', padding: '4px 10px', fontSize: '0.8rem', fontWeight: 600 }}>
-                  <Users size={14} strokeWidth={1.5} />
-                  {cls.studentCount ?? 0} Students
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.2)', borderRadius: '20px', padding: '4px 10px', fontSize: '0.8rem', fontWeight: 600 }}>
+                    <Users size={14} strokeWidth={1.5} />
+                    {cls.studentCount ?? 0} Students
+                  </div>
+                  {isAdmin && (
+                    <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
+                      <button
+                        className="btn btn-icon btn-sm"
+                        style={{
+                          background: 'rgba(255,255,255,0.2)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '28px',
+                          height: '28px',
+                        }}
+                        onClick={() => handleOpenEdit(cls)}
+                        title="Edit Class"
+                      >
+                        <Pencil size={13} strokeWidth={2} />
+                      </button>
+                      <button
+                        className="btn btn-icon btn-sm"
+                        style={{
+                          background: 'rgba(255,255,255,0.2)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '28px',
+                          height: '28px',
+                        }}
+                        onClick={() => handleDeleteClassClick(cls._id)}
+                        title="Delete Class"
+                      >
+                        <Trash2 size={13} strokeWidth={2} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', fontWeight: 800, marginBottom: '4px' }}>
                 {cls.name}{cls.section ? ` - ${cls.section}` : ''}
               </div>
               <div style={{ fontSize: '0.78rem', opacity: 0.8 }}>
-                {isAdmin ? 'Click to manage students' : 'Click to view students'}
+                {isAdmin ? 'Click card to manage students' : 'Click card to view students'}
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* ── Add Class Modal (Admin only) ── */}
-      {showAddClassModal && (
+      {/* ── Add Class Modal ── */}
+      {showAddClassModal && ReactDOM.createPortal(
         <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-class-modal-title" onClick={() => setShowAddClassModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
@@ -228,11 +334,125 @@ export default function ClassesPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── Edit Class Modal ── */}
+      {showEditClassModal && editingClass && ReactDOM.createPortal(
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-class-modal-title" onClick={() => { setShowEditClassModal(false); setEditingClass(null); }}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title" id="edit-class-modal-title">Edit Class</h2>
+              <button className="btn-icon" onClick={() => { setShowEditClassModal(false); setEditingClass(null); }} aria-label="Close"><X size={18} /></button>
+            </div>
+            <form onSubmit={handleEditClass}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="edit-class-name">Class Name *</label>
+                <input id="edit-class-name" className="form-input" placeholder="e.g. Class 10" required
+                  value={formEdit.name} onChange={e => setFormEdit(f => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="edit-class-section">Section (Optional)</label>
+                <input id="edit-class-section" className="form-input" placeholder="e.g. A"
+                  value={formEdit.section} onChange={e => setFormEdit(f => ({ ...f, section: e.target.value }))} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button type="button" className="btn btn-ghost" onClick={() => { setShowEditClassModal(false); setEditingClass(null); }}>Cancel</button>
+                <button type="submit" id="submit-edit-class" className="btn btn-primary">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── Delete Confirmation Modal ── */}
+      {classToDelete && ReactDOM.createPortal(
+        <div
+          role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title"
+          onClick={() => setClassToDelete(null)}
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(15,23,42,0.55)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 9999,
+            padding: '24px',
+            animation: 'fadeIn 0.15s ease',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'var(--clr-surface)',
+              borderRadius: '20px',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.25)',
+              padding: '36px 40px',
+              width: '100%',
+              maxWidth: '460px',
+              animation: 'popIn 0.2s ease',
+            }}
+          >
+            {/* Icon + Title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%',
+                background: 'rgba(239,68,68,0.12)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+              }}>
+                <Trash2 size={22} color="#ef4444" strokeWidth={2} />
+              </div>
+              <div>
+                <h2 id="delete-confirm-title" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-text-primary)', margin: 0 }}>Delete Class?</h2>
+                <p style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)', margin: '2px 0 0' }}>This action cannot be undone</p>
+              </div>
+              <button
+                onClick={() => setClassToDelete(null)}
+                aria-label="Close"
+                style={{ marginLeft: 'auto', background: 'var(--clr-bg)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--clr-text-muted)', flexShrink: 0 }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Body text */}
+            <p style={{ color: 'var(--clr-text-secondary)', fontSize: '0.93rem', lineHeight: '1.65', margin: '0 0 28px' }}>
+              Are you sure you want to delete this class? All students currently assigned to it will be dissociated. You won't be able to recover this class.
+            </p>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setClassToDelete(null)}
+                style={{ padding: '10px 24px', borderRadius: '10px', fontWeight: 600 }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                style={{
+                  padding: '10px 24px', borderRadius: '10px', fontWeight: 600,
+                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                  color: 'white', border: 'none', cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(239,68,68,0.3)',
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Trash2 size={15} strokeWidth={2} /> Delete Class
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Students in Class Modal ── */}
-      {showStudentsModal && selectedClass && (
+      {showStudentsModal && selectedClass && ReactDOM.createPortal(
         <div
           className="modal-overlay"
           role="dialog" aria-modal="true"
@@ -332,7 +552,8 @@ export default function ClassesPage() {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

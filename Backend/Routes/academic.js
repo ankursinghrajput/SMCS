@@ -15,6 +15,25 @@ academicRouter.post("/class", authUser, authorizeRoles("admin"), asyncHandler(as
     res.status(201).json({ message: "Class created successfully", class: newClass });
 }));
 
+academicRouter.patch("/class/:id", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { name, section } = req.body;
+    const cls = await Class.findById(id);
+    if (!cls) return res.status(404).json({ message: "Class not found" });
+    if (name !== undefined && name.trim()) cls.name = name.trim();
+    if (section !== undefined) cls.section = section.trim();
+    await cls.save();
+    res.status(200).json({ message: "Class updated successfully", class: cls });
+}));
+
+academicRouter.delete("/class/:id", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const cls = await Class.findById(id);
+    if (!cls) return res.status(404).json({ message: "Class not found" });
+    await cls.deleteOne();
+    res.status(200).json({ message: "Class deleted successfully" });
+}));
+
 academicRouter.get("/classes", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
     const classes = await Class.find();
     // Attach student count to each class
