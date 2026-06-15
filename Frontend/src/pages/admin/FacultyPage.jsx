@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, Search, Pencil, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
+import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 
 const validateContact = (val) => /^[0-9]{10}$/.test(val);
 
@@ -12,6 +13,7 @@ export default function FacultyPage() {
   const [contactError, setContactError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const fetchFaculty = async () => {
     try {
@@ -94,10 +96,14 @@ export default function FacultyPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this faculty member?')) return;
+  const handleDelete = (id, name) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/admin/faculty/${id}`, {
+      const res = await fetch(`/api/admin/faculty/${deleteTarget.id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -109,12 +115,14 @@ export default function FacultyPage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
   return (
     <div className="fade-in-up">
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-header page-header-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Users size={28} strokeWidth={1.5} /> Faculty
@@ -157,7 +165,7 @@ export default function FacultyPage() {
                 <button id={`edit-faculty-${f._id}`} className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => handleOpenEdit(f)}>
                   <Pencil size={13} strokeWidth={1.5} style={{ marginRight: '4px' }} />Edit
                 </button>
-                <button id={`delete-faculty-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id)}>
+                <button id={`delete-faculty-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id, f.name)}>
                   <Trash2 size={13} strokeWidth={1.5} />
                 </button>
               </div>
@@ -217,7 +225,7 @@ export default function FacultyPage() {
                         <button id={`edit-faculty-row-${f._id}`} className="btn btn-outline btn-sm" onClick={() => handleOpenEdit(f)}>
                           <Pencil size={13} strokeWidth={1.5} style={{ marginRight: '4px' }} />Edit
                         </button>
-                        <button id={`delete-faculty-row-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id)}>
+                        <button id={`delete-faculty-row-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id, f.name)}>
                           <Trash2 size={13} strokeWidth={1.5} />
                         </button>
                       </div>
@@ -317,6 +325,14 @@ export default function FacultyPage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        entityName={deleteTarget?.name}
+        entityType="Faculty"
+      />
     </div>
   );
 }

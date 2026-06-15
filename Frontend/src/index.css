@@ -889,12 +889,12 @@ img {
   transition: width var(--transition-base);
 }
 .sidebar-header {
-  padding: var(--space-lg) var(--space-lg);
+  padding: 14px var(--space-md);
   border-bottom: 1px solid var(--clr-border);
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  min-height: 70px;
+  min-height: 64px;
 }
 .sidebar-logo {
   width: 38px;
@@ -910,18 +910,17 @@ img {
 }
 .sidebar-brand {
   font-family: var(--font-heading);
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--clr-text-primary);
   line-height: 1.2;
-  white-space: nowrap;
 }
 .sidebar-brand-sub {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--clr-text-muted);
   font-weight: 500;
   font-family: var(--font-body);
-  white-space: nowrap;
+  line-height: 1.3;
 }
 .sidebar-nav {
   flex: 1;
@@ -1053,192 +1052,380 @@ img {
   animation: fadeIn 0.2s ease;
 }
 
+/* --- Responsive Page Header utility --- */
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: var(--space-xl);
+}
+
 /* ========== Tablet (≤ 1024px) ========== */
 @media (max-width: 1024px) {
   :root {
-    --sidebar-width: 280px;
+    --sidebar-width: 260px;
   }
   .page-wrapper {
     padding: var(--space-lg);
   }
   .stats-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
 
 /* ========== Mobile (≤ 768px) ========== */
 @media (max-width: 768px) {
 
-  /* Sidebar becomes a fixed slide-in drawer */
+  /* ── Sidebar: off-screen drawer ── */
   .sidebar {
     transform: translateX(-100%);
     transition: transform var(--transition-base);
     z-index: 20;
-    width: 280px;
+    width: min(280px, 85vw);   /* never wider than 85% of screen */
+    height: 100dvh;             /* dynamic viewport height for phones */
   }
   .sidebar.sidebar-open {
     transform: translateX(0);
     box-shadow: var(--shadow-xl);
   }
-
-  /* Show backdrop when sidebar is open */
   .sidebar-backdrop {
     display: block;
   }
-
-  /* Show close button inside sidebar on mobile */
   .sidebar-close-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
   }
 
-  /* Show hamburger in topbar */
+  /* ── Topbar ── */
   .topbar-hamburger {
     display: flex;
+    min-width: 40px;
+    min-height: 40px;
   }
-
-  /* Remove the sidebar margin — content takes full width */
   .main-content {
     margin-left: 0 !important;
+    width: 100%;
+    min-width: 0;
   }
-
-  /* Topbar tweaks */
   .topbar {
-    padding: 0 var(--space-md);
+    padding: 0 14px;
+    height: 56px;
   }
-  .topbar-date {
-    display: none;
-  }
+  .topbar-date,
   .topbar-user-info {
     display: none;
   }
 
-  /* Page wrapper */
+  /* ── Page layout ── */
   .page-wrapper {
-    padding: var(--space-md);
+    padding: 14px;
   }
-
-  /* Page header: stack title + action button vertically */
   .page-header {
-    margin-bottom: var(--space-lg);
+    margin-bottom: 16px;
+  }
+  .page-title {
+    font-size: 1.15rem;
+  }
+  .page-subtitle {
+    font-size: 0.82rem;
   }
 
-  /* Stats grid: 2 columns on tablet, 1 on phone */
+  /* ── Page header row: wrap title + button ── */
+  .page-header-row {
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+  .page-header-row > div:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Stats grid: always 2 columns on mobile ── */
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    padding: 12px;
+    gap: 8px;
+    min-height: 0;
+  }
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .stat-value {
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 0.68rem;
   }
 
-  /* Card header: stack title and search vertically */
+  /* ── Cards ── */
+  .card {
+    padding: 14px;
+    border-radius: var(--radius-md);
+  }
   .card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-md);
+    gap: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
   }
   .search-wrap {
     max-width: 100%;
     width: 100%;
   }
 
-  /* Card padding reduction */
-  .card {
-    padding: var(--space-md);
-  }
-
-  /* Dashboard grid: single column */
+  /* ── Dashboard ── */
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+  .dashboard-banner-wrap {
+    padding: 18px 20px !important;
+    border-radius: var(--radius-lg) !important;
+    margin-bottom: 16px !important;
+  }
+  .dashboard-banner-title {
+    font-size: 1.2rem !important;
+  }
 
-  /* Modal: full width on mobile */
+  /* ── Buttons: touch-friendly ── */
+  .btn {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    min-height: 40px;
+  }
+  .btn-sm {
+    padding: 7px 12px;
+    font-size: 0.78rem;
+    min-height: 34px;
+  }
+  .btn-icon {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+
+  /* ── Modals: slide down from top ── */
+  .modal-overlay {
+    padding: 20px 10px;
+    align-items: flex-start;
+  }
   .modal {
-    padding: var(--space-lg);
+    padding: 20px 16px;
     border-radius: var(--radius-lg);
     max-height: 90vh;
     overflow-y: auto;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 20px;
   }
-  .modal-overlay {
-    padding: var(--space-md);
-    align-items: flex-end;
-  }
-
-  /* Page title font size */
-  .page-title {
-    font-size: 1.3rem;
+  .modal-title {
+    font-size: 1.05rem;
   }
 
-  /* Faculty cards grid: 1 column */
+  /* ── Faculty grid ── */
   .faculty-grid {
     grid-template-columns: 1fr !important;
   }
 
-  /* Stat value slightly smaller */
-  .stat-value {
-    font-size: 1.3rem;
+  /* ── Attendance bars ── */
+  .attendance-item {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px 0;
   }
-}
-
-/* ========== Small phones (≤ 480px) ========== */
-@media (max-width: 480px) {
-
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .attendance-item > span:first-child {
+    min-width: unset !important;
+    width: 100%;
+    font-size: 0.8rem !important;
   }
-
-  .page-wrapper {
-    padding: 12px;
+  .attendance-bar-wrap {
+    flex: unset;
+    width: 100%;
+    margin: 0;
   }
-
-  .topbar {
-    padding: 0 12px;
-    height: 56px;
-  }
-
-  .card {
-    padding: 14px;
+  .attendance-item > span:last-child {
+    min-width: unset !important;
+    font-size: 0.78rem !important;
+    margin-left: auto;
   }
 
-  .btn {
-    padding: 9px 16px;
-    font-size: 0.85rem;
+  /* ── Subject cards ── */
+  .subject-cards-grid {
+    grid-template-columns: 1fr !important;
   }
 
-  .btn-sm {
-    padding: 5px 10px;
-    font-size: 0.78rem;
+  /* ── Students header controls ── */
+  .students-header-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .students-header-controls > div,
+  .students-header-controls select {
+    flex: 1;
+    min-width: 120px !important;
   }
 
-  /* Table: allow horizontal scroll on small screens */
+  /* ── Tables: always scrollable ── */
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-md);
   }
-
   .table th,
   .table td {
     padding: 10px 12px;
     font-size: 0.82rem;
     white-space: nowrap;
   }
-
-  /* Modal takes full screen height on very small phones */
-  .modal-overlay {
-    padding: 0;
-    align-items: flex-end;
+  .table-hide-mobile {
+    display: none;
   }
-  .modal {
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    max-height: 95vh;
+
+  /* ── Forms in modal ── */
+  .form-input,
+  .form-select {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
+
+  /* ── Notice items ── */
+  .notice-item {
+    padding: 10px;
+  }
+  .notice-title {
+    font-size: 0.85rem;
+  }
+}
+
+/* ========== Small phones (≤ 480px) ========== */
+@media (max-width: 480px) {
+
+  .page-wrapper {
+    padding: 10px;
+  }
+
+  .topbar {
+    padding: 0 10px;
+    height: 52px;
+  }
+
+  /* Stats: keep 2-col but even more compact */
+  .stats-grid {
+    gap: 8px;
+  }
+  .stat-card {
+    padding: 10px;
+    gap: 6px;
+  }
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .stat-value {
+    font-size: 1.1rem;
+  }
+  .stat-label {
+    font-size: 0.62rem;
+  }
+
+  .card {
+    padding: 10px;
   }
 
   .page-title {
-    font-size: 1.15rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  /* Make the icon in page-title not too big */
+  .page-title svg {
+    width: 20px !important;
+    height: 20px !important;
   }
 
-  .stat-label {
-    font-size: 0.7rem;
+  .btn {
+    padding: 9px 14px;
+    font-size: 0.82rem;
+  }
+
+  /* Page header: stack title + button on very small phones */
+  .page-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .page-header-row > .btn,
+  .page-header-row > button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Dashboard banner: super compact */
+  .dashboard-banner-wrap {
+    padding: 14px 16px !important;
+    margin-bottom: 12px !important;
+  }
+  .dashboard-banner-title {
+    font-size: 1.05rem !important;
+  }
+
+  /* Modal: full width sheet */
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-start;
+  }
+  .modal {
+    border-radius: 16px;
+    max-height: 95vh;
+    padding: 16px 14px;
+    margin-top: 20px;
+  }
+
+  /* Table cells tighter */
+  .table th,
+  .table td {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  /* Sidebar logo smaller */
+  .sidebar-header img {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  /* Subject cards minmax smaller */
+  .subject-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Students header: all controls full-width stack */
+  .students-header-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .students-header-controls > div,
+  .students-header-controls > button {
+    width: 100%;
+  }
+  .students-header-controls select {
+    width: 100% !important;
+    min-width: unset !important;
   }
 }
 

@@ -60,19 +60,22 @@ function StudentDashboard({ user }) {
   return (
     <div className="fade-in-up">
       {/* Welcome Banner */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--clr-primary), #155fa0)',
-        borderRadius: 'var(--radius-xl)',
-        padding: '28px 32px',
-        marginBottom: '28px',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
+      <div
+        className="dashboard-banner-wrap"
+        style={{
+          background: 'linear-gradient(135deg, var(--clr-primary), #155fa0)',
+          borderRadius: 'var(--radius-xl)',
+          padding: '28px 32px',
+          marginBottom: '28px',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
         <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, background: 'rgba(255,255,255,0.06)', borderRadius: '50%' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '4px' }}>Good Morning,</p>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 800, marginBottom: '8px' }}>
+          <h2 className="dashboard-banner-title" style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 800, marginBottom: '8px' }}>
             {user?.name}
           </h2>
           <p style={{ opacity: 0.75, fontSize: '0.88rem' }}>
@@ -179,15 +182,18 @@ function AdminDashboard({ user }) {
   return (
     <div className="fade-in-up">
       {/* Banner */}
-      <div style={{
-        background: 'linear-gradient(135deg, #155fa0, #8b5cf6)',
-        borderRadius: 'var(--radius-xl)', padding: '28px 32px',
-        marginBottom: '28px', color: 'white', position: 'relative', overflow: 'hidden'
-      }}>
+      <div
+        className="dashboard-banner-wrap"
+        style={{
+          background: 'linear-gradient(135deg, #155fa0, #8b5cf6)',
+          borderRadius: 'var(--radius-xl)', padding: '28px 32px',
+          marginBottom: '28px', color: 'white', position: 'relative', overflow: 'hidden'
+        }}
+      >
         <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, background: 'rgba(255,255,255,0.06)', borderRadius: '50%' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '4px' }}>Welcome back,</p>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px' }}>
+          <h2 className="dashboard-banner-title" style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px' }}>
             {user?.name}
           </h2>
           <p style={{ opacity: 0.75, fontSize: '0.88rem' }}>

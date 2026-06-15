@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, Plus, X, Pencil, Trash2, ChevronDown } from 'lucide-react';
+import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 
-const emptyForm = { name: '', classId: '', teacher: '' };
+const emptyForm = { name: '', classId: '', teacher: '', forAllClasses: false };
 
 export default function SubjectsPage() {
-  const [subjects, setSubjects]       = useState([]);
-  const [classes, setClasses]         = useState([]);
-  const [faculties, setFaculties]     = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [showModal, setShowModal]     = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [faculties, setFaculties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [editSubject, setEditSubject] = useState(null); // null = add mode, obj = edit mode
-  const [form, setForm]               = useState(emptyForm);
-  const [saving, setSaving]           = useState(false);
-  const [filterClass, setFilterClass] = useState('');
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  
+  // View mode: 'all' | 'class'
+  const [viewMode, setViewMode] = useState('all');
+  const [selectedClassId, setSelectedClassId] = useState('');
+  
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // ─── Fetch helpers ───────────────────────────────────────────────────────────
   const fetchSubjects = async () => {
@@ -30,7 +36,7 @@ export default function SubjectsPage() {
   const fetchMeta = async () => {
     try {
       const [classRes, facRes] = await Promise.all([
-        fetch('/api/academic/classes',          { credentials: 'include' }),
+        fetch('/api/academic/classes', { credentials: 'include' }),
         fetch('/api/admin/faculties?limit=500', { credentials: 'include' }),
       ]);
       if (classRes.ok) {
@@ -65,9 +71,9 @@ export default function SubjectsPage() {
   const openEditModal = (subject) => {
     setEditSubject(subject);
     setForm({
-      name:    subject.name,
+      name: subject.name,
       classId: subject.classId?._id || subject.classId || '',
-      teacher: subject.teacher?._id  || subject.teacher || '',
+      teacher: subject.teacher?._id || subject.teacher || '',
     });
     setShowModal(true);
   };
@@ -81,19 +87,37 @@ export default function SubjectsPage() {
   // ─── CRUD ─────────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.classId || !form.teacher) {
+    const isEdit = !!editSubject;
+    const isAllClasses = form.classId === 'all';
+
+    if (!form.name.trim() || !form.teacher) {
       alert('Please fill in all fields');
       return;
     }
+    if (!isAllClasses && !form.classId) {
+      alert('Please select a class');
+      return;
+    }
+
     setSaving(true);
     try {
-      const isEdit = !!editSubject;
-      const url    = isEdit ? `/api/academic/subject/${editSubject._id}` : '/api/academic/subject';
-      const method = isEdit ? 'PATCH' : 'POST';
+      let url, method, body;
+
+      if (!isEdit && isAllClasses) {
+        // Bulk-create across all classes
+        url = '/api/academic/subjects/bulk';
+        method = 'POST';
+        body = JSON.stringify({ name: form.name.trim(), teacher: form.teacher });
+      } else {
+        url = isEdit ? `/api/academic/subject/${editSubject._id}` : '/api/academic/subject';
+        method = isEdit ? 'PATCH' : 'POST';
+        body = JSON.stringify({ name: form.name.trim(), classId: form.classId, teacher: form.teacher });
+      }
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body,
         credentials: 'include',
       });
       if (res.ok) {
@@ -111,10 +135,14 @@ export default function SubjectsPage() {
     }
   };
 
-  const handleDelete = async (id, name) => {
-    if (!confirm(`Delete subject "${name}"? This cannot be undone.`)) return;
+  const handleDelete = (id, name) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/academic/subject/${id}`, {
+      const res = await fetch(`/api/academic/subject/${deleteTarget.id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -127,12 +155,14 @@ export default function SubjectsPage() {
     } catch (err) {
       console.error(err);
       alert('An error occurred');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
   // ─── Derived ──────────────────────────────────────────────────────────────────
-  const displayed = filterClass
-    ? subjects.filter(s => (s.classId?._id || s.classId) === filterClass)
+  const displayed = (viewMode === 'class' && selectedClassId)
+    ? subjects.filter(s => (s.classId?._id || s.classId) === selectedClassId)
     : subjects;
 
   const tagColors = [
@@ -149,42 +179,97 @@ export default function SubjectsPage() {
   return (
     <div className="fade-in-up">
       {/* Page Header */}
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-header page-header-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <BookOpen size={28} strokeWidth={1.5} /> Subjects
           </h1>
           <p className="page-subtitle">Manage subjects assigned to classes and teachers</p>
         </div>
-        <button id="add-subject-btn" className="btn btn-primary" onClick={openAddModal}>
-          <Plus size={16} strokeWidth={2} style={{ marginRight: '4px' }} /> Add Subject
-        </button>
-      </div>
-
-      {/* Filter bar */}
-      <div className="card" style={{ marginBottom: '20px', padding: '14px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--clr-text-muted)' }}>Filter by class:</span>
-          <div style={{ position: 'relative', minWidth: '200px' }}>
+        {/* Right side: View controls + Add button */}
+        <div className="students-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* View Mode Dropdown */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <select
-              id="subject-filter-class"
+              id="subject-view-mode-select"
               className="form-select"
-              value={filterClass}
-              onChange={e => setFilterClass(e.target.value)}
-              style={{ paddingRight: '32px', appearance: 'none' }}
+              value={viewMode}
+              onChange={(e) => {
+                setViewMode(e.target.value);
+                if (e.target.value === 'all') setSelectedClassId('');
+              }}
+              style={{
+                paddingRight: '36px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                appearance: 'none',
+                minWidth: '160px',
+                background: 'var(--clr-surface)',
+                border: '1.5px solid var(--clr-border)',
+                borderRadius: '10px',
+                height: '40px',
+                color: 'var(--clr-text)',
+                fontSize: '0.9rem',
+              }}
             >
-              <option value="">All Classes</option>
-              {classes.map(c => (
-                <option key={c._id} value={c._id}>
-                  {c.name}{c.section ? ` - ${c.section}` : ''}
-                </option>
-              ))}
+              <option value="all">All Subjects</option>
+              <option value="class">Class-wise</option>
             </select>
-            <ChevronDown size={15} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--clr-text-muted)' }} />
+            <ChevronDown
+              size={15}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                pointerEvents: 'none',
+                color: 'var(--clr-text-secondary)',
+              }}
+            />
           </div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)' }}>
-            {displayed.length} subject{displayed.length !== 1 ? 's' : ''} found
-          </span>
+
+          {/* Class Selector — only visible when class-wise is selected */}
+          {viewMode === 'class' && (
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', animation: 'fadeIn 0.2s ease' }}>
+              <select
+                id="subject-filter-class"
+                className="form-select"
+                value={selectedClassId}
+                onChange={e => setSelectedClassId(e.target.value)}
+                style={{
+                  paddingRight: '36px',
+                  minWidth: '170px',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  background: 'var(--clr-surface)',
+                  border: '1.5px solid var(--clr-primary, #6366f1)',
+                  borderRadius: '10px',
+                  height: '40px',
+                  color: 'var(--clr-text)',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                }}
+              >
+                <option value="">— Select Class —</option>
+                {classes.map(c => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}{c.section ? ` - ${c.section}` : ''}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={15}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  pointerEvents: 'none',
+                  color: 'var(--clr-text-secondary)',
+                }}
+              />
+            </div>
+          )}
+
+          <button id="add-subject-btn" className="btn btn-primary" onClick={openAddModal}>
+            <Plus size={16} strokeWidth={2} style={{ marginRight: '4px' }} /> Add Subject
+          </button>
         </div>
       </div>
 
@@ -195,19 +280,19 @@ export default function SubjectsPage() {
         <div className="empty-state">
           <div style={{ opacity: 0.28, marginBottom: '14px' }}><BookOpen size={58} strokeWidth={0.9} /></div>
           <p style={{ color: 'var(--clr-text-muted)', marginBottom: '16px' }}>
-            {filterClass ? 'No subjects for this class yet.' : 'No subjects added yet.'}
+            {viewMode === 'class' && selectedClassId ? 'No subjects for this class yet.' : 'No subjects added yet.'}
           </p>
           <button className="btn btn-primary btn-sm" onClick={openAddModal}>
             <Plus size={15} strokeWidth={2} style={{ marginRight: '4px' }} /> Add First Subject
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+        <div className="subject-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
           {displayed.map(subject => {
-            const cls      = subject.classId;
-            const teacher  = subject.teacher;
-            const clsId    = cls?._id || subject.classId || '';
-            const color    = colorFor(clsId);
+            const cls = subject.classId;
+            const teacher = subject.teacher;
+            const clsId = cls?._id || subject.classId || '';
+            const color = colorFor(clsId);
             const clsLabel = cls ? `${cls.name}${cls.section ? ` - ${cls.section}` : ''}` : '—';
 
             return (
@@ -313,12 +398,21 @@ export default function SubjectsPage() {
                   onChange={e => setForm(f => ({ ...f, classId: e.target.value }))}
                 >
                   <option value="">— Select Class —</option>
+                  {/* Only show 'All Classes' when adding, not editing */}
+                  {!editSubject && (
+                    <option value="all">All Classes (add to every class)</option>
+                  )}
                   {classes.map(c => (
                     <option key={c._id} value={c._id}>
                       {c.name}{c.section ? ` - ${c.section}` : ''}
                     </option>
                   ))}
                 </select>
+                {form.classId === 'all' && (
+                  <p style={{ marginTop: '6px', fontSize: '0.78rem', color: 'var(--clr-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    This subject will be created for all {classes.length} class{classes.length !== 1 ? 'es' : ''} at once.
+                  </p>
+                )}
               </div>
 
               {/* Teacher */}
@@ -348,6 +442,14 @@ export default function SubjectsPage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        entityName={deleteTarget?.name}
+        entityType="Subject"
+      />
     </div>
   );
 }

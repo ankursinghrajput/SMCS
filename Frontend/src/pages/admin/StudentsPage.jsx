@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, Search, Pencil, Trash2, Plus, ChevronDown, Eye, EyeOff } from 'lucide-react';
+import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 
 const validateContact = (val) => /^[0-9]{10}$/.test(val);
 
@@ -13,6 +14,7 @@ export default function StudentsPage() {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // View mode: 'all' | 'class'
   const [viewMode, setViewMode] = useState('all');
@@ -124,10 +126,14 @@ export default function StudentsPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this student?')) return;
+  const handleDelete = (id, name) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/admin/student/${id}`, {
+      const res = await fetch(`/api/admin/student/${deleteTarget.id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -139,6 +145,8 @@ export default function StudentsPage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -150,7 +158,7 @@ export default function StudentsPage() {
 
   return (
     <div className="fade-in-up">
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-header page-header-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <GraduationCap size={28} strokeWidth={1.5} /> Students
@@ -159,7 +167,7 @@ export default function StudentsPage() {
         </div>
 
         {/* Right side: View controls + Add button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div className="students-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {/* View Mode Dropdown */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <select
@@ -331,7 +339,7 @@ export default function StudentsPage() {
                         <button id={`edit-student-${s._id}`} className="btn btn-outline btn-sm" onClick={() => handleOpenEdit(s)}>
                           <Pencil size={13} strokeWidth={1.5} style={{ marginRight: '4px' }} />Edit
                         </button>
-                        <button id={`delete-student-${s._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(s._id)}>
+                        <button id={`delete-student-${s._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(s._id, s.name)}>
                           <Trash2 size={13} strokeWidth={1.5} />
                         </button>
                       </div>
@@ -448,6 +456,14 @@ export default function StudentsPage() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        entityName={deleteTarget?.name}
+        entityType="Student"
+      />
     </div>
   );
 }

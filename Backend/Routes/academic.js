@@ -71,6 +71,24 @@ academicRouter.post("/subject", authUser, authorizeRoles("admin"), asyncHandler(
     res.status(201).json({ message: "Subject created successfully", subject: populated });
 }));
 
+// Bulk-create a subject for ALL classes at once
+academicRouter.post("/subjects/bulk", authUser, authorizeRoles("admin"), asyncHandler(async (req, res) => {
+    const { name, teacher } = req.body;
+    if (!name || !teacher) {
+        return res.status(400).json({ message: "name and teacher are required" });
+    }
+    const allClasses = await Class.find();
+    if (allClasses.length === 0) {
+        return res.status(400).json({ message: "No classes found. Please create classes first." });
+    }
+    const docs = allClasses.map(cls => ({ name, classId: cls._id, teacher }));
+    const created = await Subject.insertMany(docs);
+    const populated = await Subject.find({ _id: { $in: created.map(s => s._id) } })
+        .populate("classId", "name section")
+        .populate("teacher", "name email");
+    res.status(201).json({ message: `Subject "${name}" added to all ${allClasses.length} classes`, subjects: populated });
+}));
+
 academicRouter.get("/subjects", authUser, authorizeRoles("admin", "faculty"), asyncHandler(async (req, res) => {
     const filter = {};
     if (req.query.classId) filter.classId = req.query.classId;

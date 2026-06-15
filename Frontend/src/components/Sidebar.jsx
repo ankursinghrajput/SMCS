@@ -64,23 +64,28 @@ export default function Sidebar({ activePage, setActivePage, isOpen, onClose }) 
       >
         {/* Header */}
         <div className="sidebar-header">
-          <img
-            src="/SMCS_logo_nobg_trimmed.png"
-            alt="SMCS Logo"
-            style={{ width: '85px', height: '85px', objectFit: 'contain', borderRadius: '6px', flexShrink: 0 }}
-          />
-          <div style={{ flex: 1 }}>
-            <div className="sidebar-brand">SMCS</div>
-            <div className="sidebar-brand-sub">Sanjeev Memorial Center School</div>
+          {/* Top row: brand info + close button */}
+          <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '10px' }}>
+            <img
+              src="/SMCS_logo_nobg_trimmed.png"
+              alt="SMCS Logo"
+              style={{ width: '46px', height: '46px', objectFit: 'contain', borderRadius: '6px', flexShrink: 0 }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="sidebar-brand">SMCS</div>
+              <div className="sidebar-brand-sub" style={{ whiteSpace: 'normal', lineHeight: 1.3 }}>
+                Sanjeev Memorial<br />Center School
+              </div>
+            </div>
+            {/* Close button — only visible on mobile */}
+            <button
+              className="sidebar-close-btn"
+              onClick={onClose}
+              aria-label="Close menu"
+            >
+              <X size={20} strokeWidth={2} />
+            </button>
           </div>
-          {/* Close button — only visible on mobile */}
-          <button
-            className="sidebar-close-btn"
-            onClick={onClose}
-            aria-label="Close menu"
-          >
-            <X size={20} strokeWidth={2} />
-          </button>
         </div>
 
         {/* Navigation */}

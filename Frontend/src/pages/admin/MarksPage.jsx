@@ -103,7 +103,7 @@ export default function AdminMarksPage() {
 
   return (
     <div className="fade-in-up">
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-header page-header-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 className="page-title">📝 Marks Management</h1>
           <p className="page-subtitle">Upload and manage student marks</p>
