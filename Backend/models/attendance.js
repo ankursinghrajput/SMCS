@@ -24,6 +24,12 @@ const attendanceSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
+    },
+    // TTL field: MongoDB will automatically delete records 180 days after createdAt
+    createdAt: {
+        type: Date,
+        default: Date.now,
+        expires: 60 * 60 * 24 * 180  // 180 days in seconds
     }
 });
 

@@ -68,17 +68,21 @@ studentRouter.get("/dashboard", authUser, authorizeRoles("admin", "faculty", "st
 studentRouter.get("/attendance", authUser, authorizeRoles("student"), asyncHandler(async (req, res) => {
     const { month, year, subject } = req.query;
 
-    const filter = { student: req.user._id };
+    // Enforce 6-month retention window
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const filter = { student: req.user._id, date: { $gte: sixMonthsAgo } };
     if (subject) filter.subject = subject;
 
     if (month && year) {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 1);
-        filter.date = { $gte: startDate, $lt: endDate };
+        filter.date = { $gte: startDate < sixMonthsAgo ? sixMonthsAgo : startDate, $lt: endDate };
     } else if (year) {
         const startDate = new Date(year, 0, 1);
         const endDate = new Date(Number(year) + 1, 0, 1);
-        filter.date = { $gte: startDate, $lt: endDate };
+        filter.date = { $gte: startDate < sixMonthsAgo ? sixMonthsAgo : startDate, $lt: endDate };
     }
 
     const attendance = await Attendance.find(filter)
@@ -142,7 +146,13 @@ studentRouter.get("/attendance", authUser, authorizeRoles("student"), asyncHandl
         message: "Attendance retrieved successfully",
         attendance,
         summary,
-        consecutiveAbsenceWarnings
+        consecutiveAbsenceWarnings,
+        // Calendar data: one entry per record, for the hover-calendar widget
+        calendarData: attendance.map(r => ({
+            date: new Date(r.date).toISOString().split("T")[0],
+            status: r.status,
+            subjectName: r.subject?.name || "Unknown"
+        }))
     });
 }));
 
