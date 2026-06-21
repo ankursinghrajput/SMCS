@@ -25,6 +25,7 @@
   /* Neutral Colors */
   --clr-white: #ffffff;
   --clr-bg: #f0f4f8;
+  --clr-bg-secondary: #e8eef5;
   --clr-surface: #ffffff;
   --clr-border: #e2e8f0;
   --clr-text-primary: #0f172a;
@@ -581,6 +582,27 @@ img {
 }
 @media (max-width: 1100px) {
   .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+/* --- Holidays Page Layout --- */
+.holidays-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+.holidays-calendar-panel { /* no extra overrides needed on desktop */ }
+.holidays-list-panel { /* no extra overrides needed on desktop */ }
+
+@media (max-width: 860px) {
+  .holidays-layout {
+    grid-template-columns: 1fr;
+  }
+  .holidays-list-panel {
+    /* list sits below the calendar — make it scrollable without fixed height */
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 /* --- Progress Circle --- */

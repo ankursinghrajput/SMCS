@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   BookOpen, ClipboardList, FileText, GraduationCap, Pencil,
   FlaskConical, Upload, BarChart2, Trash2, ArrowLeft,
@@ -28,6 +29,25 @@ const EXAM_COLORS = {
   'Practical':   { bg: '#ffedd5', color: '#9a3412', border: '#fdba74' },
 };
 
+/* ─── Table cell style constants ──────────────────────────────────────────── */
+const TH = {
+  padding: '10px 14px',
+  textAlign: 'left',
+  fontSize: '0.75rem',
+  fontWeight: 700,
+  color: 'var(--clr-text-secondary)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+  borderBottom: '1px solid var(--clr-border)',
+  background: 'var(--clr-bg)',
+  whiteSpace: 'nowrap',
+};
+
+const TD = {
+  padding: '11px 14px',
+  verticalAlign: 'middle',
+};
+
 /* ─── Grade helper ────────────────────────────────────────────────────────── */
 function getGrade(marks, total) {
   const pct = (marks / total) * 100;
@@ -42,7 +62,7 @@ function getGrade(marks, total) {
 
 /* ─── Exam Badge ──────────────────────────────────────────────────────────── */
 function ExamBadge({ examType }) {
-  const ec = EXAM_COLORS[examType] || {};
+  const ec   = EXAM_COLORS[examType] || {};
   const Icon = EXAM_ICON_MAP[examType] || FileText;
   return (
     <span style={{
@@ -59,13 +79,29 @@ function ExamBadge({ examType }) {
   );
 }
 
+/* ─── Overlay style (shared) ─────────────────────────────────────────────── */
+const OVERLAY_STYLE = {
+  position: 'fixed',
+  top: 0, left: 0, right: 0, bottom: 0,
+  background: 'rgba(10,18,35,0.52)',
+  backdropFilter: 'blur(7px)',
+  WebkitBackdropFilter: 'blur(7px)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 9999,
+  animation: 'fadeIn 0.15s ease',
+  padding: '24px',
+  boxSizing: 'border-box',
+};
+
 /* ─── Upload Marks Modal ──────────────────────────────────────────────────── */
 function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
   const [form, setForm] = useState({
-    subject: subjects[0]?._id || '',
-    examType: 'Unit Test 1',
-    marks: '',
-    totalMarks: 100,
+    subject:      subjects[0]?._id || '',
+    examType:     'Unit Test 1',
+    marks:        '',
+    totalMarks:   100,
     passingMarks: 40,
   });
   const [loading, setLoading] = useState(false);
@@ -89,11 +125,11 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student: student._id,
-          subject: form.subject,
-          examType: form.examType,
-          marks: Number(form.marks),
-          totalMarks: Number(form.totalMarks),
+          student:      student._id,
+          subject:      form.subject,
+          examType:     form.examType,
+          marks:        Number(form.marks),
+          totalMarks:   Number(form.totalMarks),
           passingMarks: Number(form.passingMarks),
         }),
         credentials: 'include',
@@ -111,10 +147,21 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
     }
   };
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
-
+  const modal = (
+    <div style={OVERLAY_STYLE} onClick={onClose}>
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background:    'var(--clr-surface)',
+          borderRadius:  '20px',
+          boxShadow:     '0 24px 60px rgba(0,0,0,0.25)',
+          padding:       '28px 28px 24px',
+          width:         '100%',
+          maxWidth:      520,
+          animation:     'popIn 0.2s ease',
+          boxSizing:     'border-box',
+        }}
+      >
         {/* Header */}
         <div className="modal-header">
           <div>
@@ -133,9 +180,9 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
           </label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
             {EXAM_TYPES.map(t => {
-              const c = EXAM_COLORS[t];
+              const c      = EXAM_COLORS[t];
               const active = form.examType === t;
-              const Icon = EXAM_ICON_MAP[t] || FileText;
+              const Icon   = EXAM_ICON_MAP[t] || FileText;
               return (
                 <button
                   key={t}
@@ -143,15 +190,12 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
                   onClick={() => setForm(f => ({ ...f, examType: t }))}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
-                    padding: '6px 12px',
-                    borderRadius: 20,
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
+                    padding: '6px 12px', borderRadius: 20,
+                    fontSize: '0.78rem', fontWeight: 600,
                     border: `1.5px solid ${active ? c.border : 'var(--clr-border)'}`,
                     background: active ? c.bg : 'transparent',
                     color: active ? c.color : 'var(--clr-text-secondary)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
+                    cursor: 'pointer', transition: 'all 0.15s',
                   }}
                 >
                   <Icon size={12} strokeWidth={2} /> {t}
@@ -188,13 +232,8 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
                 Marks Obtained <span style={{ color: 'var(--clr-danger)' }}>*</span>
               </label>
               <input
-                id="modal-marks"
-                type="number"
-                className="form-input"
-                placeholder="0"
-                min="0"
-                max={form.totalMarks}
-                required
+                id="modal-marks" type="number" className="form-input"
+                placeholder="0" min="0" max={form.totalMarks} required
                 value={form.marks}
                 onChange={e => setForm(f => ({ ...f, marks: e.target.value }))}
               />
@@ -202,10 +241,7 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="modal-total">Total Marks</label>
               <input
-                id="modal-total"
-                type="number"
-                className="form-input"
-                min="1"
+                id="modal-total" type="number" className="form-input" min="1"
                 value={form.totalMarks}
                 onChange={e => setForm(f => ({ ...f, totalMarks: e.target.value }))}
               />
@@ -213,57 +249,64 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="modal-passing">Passing Marks</label>
               <input
-                id="modal-passing"
-                type="number"
-                className="form-input"
-                min="1"
+                id="modal-passing" type="number" className="form-input" min="1"
                 value={form.passingMarks}
                 onChange={e => setForm(f => ({ ...f, passingMarks: e.target.value }))}
               />
             </div>
           </div>
 
-          {/* Live preview */}
+          {/* Live preview with passing threshold bar */}
           {pct !== null && (() => {
-            const grade = getGrade(Number(form.marks), Number(form.totalMarks));
-            const isPassing = Number(form.marks) >= Number(form.passingMarks);
+            const grade      = getGrade(Number(form.marks), Number(form.totalMarks));
+            const isPassing  = Number(form.marks) >= Number(form.passingMarks);
+            const passingPct = Number(form.totalMarks) > 0
+              ? Math.round((Number(form.passingMarks) / Number(form.totalMarks)) * 100)
+              : 0;
             return (
               <div style={{
-                marginTop: 14,
-                padding: '10px 14px',
+                marginTop: 14, padding: '12px 14px',
                 borderRadius: 'var(--radius-md)',
                 background: examColor.bg || 'var(--clr-bg)',
                 border: `1px solid ${examColor.border || 'var(--clr-border)'}`,
-                display: 'flex', alignItems: 'center', gap: 12,
               }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: grade.color + '22',
-                  color: grade.color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 800, fontSize: '0.95rem',
-                  flexShrink: 0,
-                }}>
-                  {grade.letter}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: grade.color + '22', color: grade.color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 800, fontSize: '0.95rem', flexShrink: 0,
+                  }}>
+                    {grade.letter}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                      {form.marks} / {form.totalMarks}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: isPassing ? '#059669' : '#ef4444', fontWeight: 600 }}>
+                      {isPassing ? 'Passing' : 'Failing'} — {pct}% scored, {passingPct}% required to pass
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
-                    {form.marks} / {form.totalMarks} &mdash; {pct}%
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: isPassing ? '#059669' : '#ef4444', fontWeight: 600, marginTop: 2 }}>
-                    {isPassing ? 'Pass' : 'Fail'}
-                  </div>
+                {/* Progress bar with passing threshold marker */}
+                <div style={{ position: 'relative', height: 8, borderRadius: 999, background: 'rgba(0,0,0,0.1)', overflow: 'visible', margin: '0 2px' }}>
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0,
+                    height: '100%', width: `${Math.min(pct, 100)}%`,
+                    background: grade.color, borderRadius: 999,
+                    transition: 'width 0.4s ease',
+                  }} />
+                  {/* Passing threshold line */}
+                  <div style={{
+                    position: 'absolute', top: -3, bottom: -3,
+                    left: `${passingPct}%`,
+                    width: 2, background: '#475569', borderRadius: 2,
+                  }} />
                 </div>
-                <div style={{ flex: 1, marginLeft: 8 }}>
-                  <div style={{ height: 6, borderRadius: 999, background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${pct}%`,
-                      background: grade.color,
-                      borderRadius: 999,
-                      transition: 'width 0.4s ease',
-                    }} />
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5, fontSize: '0.68rem', color: 'var(--clr-text-muted)' }}>
+                  <span>0</span>
+                  <span style={{ color: '#475569', fontWeight: 600 }}>Pass threshold: {passingPct}%</span>
+                  <span>100%</span>
                 </div>
               </div>
             );
@@ -272,10 +315,9 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
           {error && (
             <div style={{
               marginTop: 12, padding: '8px 12px',
-              background: 'var(--clr-danger-light)',
-              color: '#b91c1c', borderRadius: 'var(--radius-md)',
-              fontSize: '0.82rem', fontWeight: 500,
-              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'var(--clr-danger-light)', color: '#b91c1c',
+              borderRadius: 'var(--radius-md)', fontSize: '0.82rem',
+              fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <AlertCircle size={14} /> {error}
             </div>
@@ -298,12 +340,14 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
 /* ─── Student Marks Detail Modal ──────────────────────────────────────────── */
 function StudentMarksModal({ student, onClose }) {
-  const [marks, setMarks]         = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [marks, setMarks]           = useState([]);
+  const [loading, setLoading]       = useState(true);
   const [filterExam, setFilterExam] = useState('All');
 
   useEffect(() => {
@@ -324,7 +368,13 @@ function StudentMarksModal({ student, onClose }) {
   }, [student._id]);
 
   const examTypesPresent = ['All', ...new Set(marks.map(m => m.examType))];
-  const filtered = filterExam === 'All' ? marks : marks.filter(m => m.examType === filterExam);
+  const filtered    = filterExam === 'All' ? marks : marks.filter(m => m.examType === filterExam);
+
+  const totalObtained = filtered.reduce((a, m) => a + m.marks, 0);
+  const totalPossible = filtered.reduce((a, m) => a + m.totalMarks, 0);
+  const overallPct    = totalPossible > 0 ? Math.round((totalObtained / totalPossible) * 100) : 0;
+  const passCount     = filtered.filter(m => m.marks >= m.passingMarks).length;
+  const failCount     = filtered.length - passCount;
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this mark record?')) return;
@@ -334,25 +384,59 @@ function StudentMarksModal({ student, onClose }) {
     } catch { /* silent */ }
   };
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
+  const modal = (
+    <div style={OVERLAY_STYLE} onClick={onClose}>
       <div
-        className="modal"
-        style={{ maxWidth: 700, maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
         onClick={e => e.stopPropagation()}
+        style={{
+          background:    'var(--clr-surface)',
+          borderRadius:  '20px',
+          boxShadow:     '0 24px 60px rgba(0,0,0,0.25)',
+          padding:       '24px 24px 0',
+          width:         '100%',
+          maxWidth:      900,
+          maxHeight:     '90vh',
+          display:       'flex',
+          flexDirection: 'column',
+          animation:     'popIn 0.2s ease',
+          overflow:      'hidden',
+          boxSizing:     'border-box',
+        }}
       >
-        <div className="modal-header" style={{ flexShrink: 0 }}>
+        {/* ── Header ── */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexShrink: 0 }}>
           <div>
-            <h2 className="modal-title">{student.name} — Marks Record</h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)', marginTop: 2 }}>
-              All recorded marks for this student
-            </p>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: 700, marginBottom: 2 }}>
+              {student.name}
+            </h2>
+            <p style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)' }}>Marks Record</p>
           </div>
           <button className="btn-icon" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
-        {/* Exam filter tabs */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14, flexShrink: 0 }}>
+        {/* ── Summary Stats ── */}
+        {!loading && marks.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 14, flexShrink: 0 }}>
+            {[
+              { label: 'Total Records',   value: filtered.length, color: 'var(--clr-primary)', bg: 'var(--clr-primary-light)' },
+              { label: 'Overall Score',   value: `${overallPct}%`, color: overallPct >= 60 ? '#059669' : '#ef4444', bg: overallPct >= 60 ? '#d1fae5' : '#fee2e2' },
+              { label: 'Passed',          value: passCount, color: '#059669', bg: '#d1fae5' },
+              { label: 'Failed',          value: failCount, color: failCount > 0 ? '#ef4444' : '#64748b', bg: failCount > 0 ? '#fee2e2' : 'var(--clr-bg)' },
+            ].map((s, i) => (
+              <div key={i} style={{ background: s.bg, borderRadius: 'var(--radius-md)', padding: '10px 12px', textAlign: 'center' }}>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.4rem', fontWeight: 800, color: s.color }}>
+                  {s.value}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--clr-text-secondary)', fontWeight: 500, marginTop: 2 }}>
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Exam filter tabs ── */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12, flexShrink: 0 }}>
           {examTypesPresent.map(t => {
             const Icon = t !== 'All' ? (EXAM_ICON_MAP[t] || FileText) : null;
             return (
@@ -369,90 +453,116 @@ function StudentMarksModal({ student, onClose }) {
           })}
         </div>
 
-        <div style={{ overflowY: 'auto', flex: 1 }}>
+        {/* ── Table ── */}
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', minHeight: 0, marginLeft: -24, marginRight: -24 }}>
           {loading ? (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--clr-text-muted)' }}>
-              Loading marks…
-            </div>
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--clr-text-muted)' }}>Loading marks…</div>
           ) : filtered.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon" style={{ opacity: 0.35 }}>
-                <BarChart2 size={48} strokeWidth={1} />
-              </div>
+            <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--clr-text-muted)' }}>
+              <div style={{ opacity: 0.3, marginBottom: 10 }}><BarChart2 size={40} strokeWidth={1} style={{ margin: '0 auto' }} /></div>
               <p>No marks records found.</p>
             </div>
           ) : (
-            <div className="table-wrapper">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Subject</th>
-                    <th>Exam Type</th>
-                    <th>Marks</th>
-                    <th>Percentage</th>
-                    <th>Grade</th>
-                    <th>Result</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map(m => {
-                    const pct   = Math.round((m.marks / m.totalMarks) * 100);
-                    const grade = getGrade(m.marks, m.totalMarks);
-                    return (
-                      <tr key={m._id}>
-                        <td><strong>{m.subject?.name || 'N/A'}</strong></td>
-                        <td><ExamBadge examType={m.examType} /></td>
-                        <td>
-                          <strong>{m.marks}</strong>
-                          <span style={{ color: 'var(--clr-text-muted)', fontSize: '0.8rem' }}>
-                            /{m.totalMarks}
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr>
+                  <th style={{ ...TH, paddingLeft: 24 }}>#</th>
+                  <th style={TH}>Subject</th>
+                  <th style={TH}>Exam Type</th>
+                  <th style={TH}>Marks</th>
+                  <th style={TH}>Total</th>
+                  <th style={TH}>Passing %</th>
+                  <th style={TH}>Score %</th>
+                  <th style={TH}>Grade</th>
+                  <th style={TH}>Result</th>
+                  <th style={{ ...TH, paddingRight: 24 }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((m, i) => {
+                  const scorePct  = Math.round((m.marks / m.totalMarks) * 100);
+                  const passPct   = Math.round((m.passingMarks / m.totalMarks) * 100);
+                  const grade     = getGrade(m.marks, m.totalMarks);
+                  const isPassing = m.marks >= m.passingMarks;
+                  return (
+                    <tr key={m._id} style={{ borderBottom: '1px solid var(--clr-border)' }}>
+                      <td style={{ ...TD, paddingLeft: 24 }}>
+                        <span style={{ color: 'var(--clr-text-muted)', fontSize: '0.75rem' }}>{i + 1}</span>
+                      </td>
+                      <td style={TD}>
+                        <strong style={{ fontSize: '0.88rem' }}>{m.subject?.name || 'N/A'}</strong>
+                      </td>
+                      <td style={TD}>
+                        <ExamBadge examType={m.examType} />
+                      </td>
+                      <td style={TD}>
+                        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1rem', color: grade.color }}>
+                          {m.marks}
+                        </span>
+                      </td>
+                      <td style={{ ...TD, color: 'var(--clr-text-muted)' }}>{m.totalMarks}</td>
+                      <td style={TD}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>
+                          {passPct}%
+                        </span>
+                      </td>
+                      <td style={TD}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 52, height: 5, borderRadius: 999, background: 'var(--clr-border)', overflow: 'hidden', flexShrink: 0 }}>
+                            <div style={{ height: '100%', width: `${scorePct}%`, background: grade.color, borderRadius: 999, transition: 'width 0.4s' }} />
+                          </div>
+                          <span style={{ fontWeight: 700, color: grade.color, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                            {scorePct}%
                           </span>
-                        </td>
-                        <td>
-                          <span style={{ fontWeight: 700, color: grade.color }}>{pct}%</span>
-                        </td>
-                        <td>
-                          <span style={{
-                            background: grade.color + '20', color: grade.color,
-                            padding: '2px 10px', borderRadius: 999,
-                            fontWeight: 700, fontSize: '0.82rem',
-                          }}>
-                            {grade.letter}
+                        </div>
+                      </td>
+                      <td style={TD}>
+                        <span style={{
+                          background: grade.color + '1a', color: grade.color,
+                          padding: '2px 10px', borderRadius: 999,
+                          fontWeight: 700, fontSize: '0.8rem',
+                        }}>
+                          {grade.letter}
+                        </span>
+                      </td>
+                      <td style={TD}>
+                        {isPassing ? (
+                          <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <CheckCircle size={10} /> Pass
                           </span>
-                        </td>
-                        <td>
-                          {m.marks >= m.passingMarks ? (
-                            <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <CheckCircle size={11} /> Pass
-                            </span>
-                          ) : (
-                            <span className="badge badge-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <XCircle size={11} /> Fail
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          <button
-                            id={`delete-mark-${m._id}`}
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleDelete(m._id)}
-                            style={{ padding: '5px 8px', display: 'flex', alignItems: 'center', gap: 4 }}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        ) : (
+                          <span className="badge badge-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <XCircle size={10} /> Fail
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ ...TD, paddingRight: 24 }}>
+                        <button
+                          id={`delete-mark-${m._id}`}
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(m._id)}
+                          style={{ padding: '4px 7px', display: 'flex', alignItems: 'center' }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
+        </div>
+
+        {/* ── Footer ── */}
+        <div style={{ padding: '12px 0 16px', flexShrink: 0, display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--clr-border)' }}>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
 /* ─── Class View: Students + Actions ─────────────────────────────────────── */
@@ -559,22 +669,16 @@ function ClassMarksView({ classObj, onBack }) {
                 onClick={() => setActiveExamFilter(t)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 14px',
-                  borderRadius: 999,
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
+                  padding: '7px 14px', borderRadius: 999,
+                  fontSize: '0.8rem', fontWeight: 600,
                   border: `1.5px solid ${active ? (c.border || 'var(--clr-primary)') : 'var(--clr-border)'}`,
                   background: active ? (c.bg || 'var(--clr-primary-light)') : 'transparent',
                   color: active ? (c.color || 'var(--clr-primary)') : 'var(--clr-text-secondary)',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
+                  cursor: 'pointer', transition: 'all 0.15s ease',
                   boxShadow: active ? `0 2px 8px ${(c.border || '#1a7fce')}40` : 'none',
                 }}
               >
-                {Icon
-                  ? <Icon size={13} strokeWidth={2} />
-                  : <BarChart2 size={13} strokeWidth={2} />
-                }
+                {Icon ? <Icon size={13} strokeWidth={2} /> : <BarChart2 size={13} strokeWidth={2} />}
                 {t === 'All' ? 'All' : t}
               </button>
             );
@@ -662,10 +766,7 @@ function ClassMarksView({ classObj, onBack }) {
                             {activeExamFilter !== 'All' && (
                               <span style={{
                                 background: 'rgba(255,255,255,0.22)',
-                                borderRadius: 999,
-                                padding: '1px 6px',
-                                fontSize: '0.68rem',
-                                marginLeft: 2,
+                                borderRadius: 999, padding: '1px 6px', fontSize: '0.68rem', marginLeft: 2,
                               }}>
                                 {activeExamFilter}
                               </span>
@@ -791,8 +892,7 @@ export default function AdminMarksPage() {
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   background: 'rgba(255,255,255,0.15)',
                   border: '1px solid rgba(255,255,255,0.22)',
-                  borderRadius: 999,
-                  padding: '5px 12px',
+                  borderRadius: 999, padding: '5px 12px',
                   fontSize: '0.78rem', fontWeight: 600,
                   backdropFilter: 'blur(4px)',
                 }}>
@@ -832,11 +932,7 @@ export default function AdminMarksPage() {
             <p>{classSearch ? 'No classes match your search.' : 'No classes found. Please create classes first.'}</p>
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
-            gap: 14,
-          }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 14 }}>
             {filteredClasses.map((cls, idx) => {
               const ac = CLASS_ACCENTS[idx % CLASS_ACCENTS.length];
               return (
@@ -845,19 +941,15 @@ export default function AdminMarksPage() {
                   id={`class-card-${cls._id}`}
                   onClick={() => setSelectedClass(cls)}
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
+                    display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
                     padding: '18px 20px',
                     background: 'var(--clr-surface)',
                     border: `1.5px solid var(--clr-border)`,
                     borderRadius: 'var(--radius-lg)',
-                    cursor: 'pointer',
-                    transition: 'all 0.18s ease',
+                    cursor: 'pointer', transition: 'all 0.18s ease',
                     textAlign: 'left',
                     boxShadow: 'var(--shadow-sm)',
-                    position: 'relative',
-                    overflow: 'hidden',
+                    position: 'relative', overflow: 'hidden',
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.transform = 'translateY(-3px)';
@@ -870,43 +962,30 @@ export default function AdminMarksPage() {
                     e.currentTarget.style.borderColor = 'var(--clr-border)';
                   }}
                 >
-                  {/* Top accent line */}
                   <div style={{
                     position: 'absolute', top: 0, left: 0, right: 0,
-                    height: 3,
-                    background: `linear-gradient(90deg, ${ac.border}, ${ac.color}80)`,
+                    height: 3, background: `linear-gradient(90deg, ${ac.border}, ${ac.color}80)`,
                   }} />
 
                   <div style={{
-                    width: 44, height: 44,
-                    borderRadius: 'var(--radius-md)',
-                    background: ac.bg,
-                    border: `1.5px solid ${ac.border}`,
+                    width: 44, height: 44, borderRadius: 'var(--radius-md)',
+                    background: ac.bg, border: `1.5px solid ${ac.border}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     marginBottom: 12, color: ac.color,
                   }}>
                     <BookOpen size={20} strokeWidth={1.5} />
                   </div>
 
-                  <div style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                    color: 'var(--clr-text-primary)',
-                    marginBottom: 4,
-                  }}>
+                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 800, color: 'var(--clr-text-primary)', marginBottom: 4 }}>
                     {cls.name}
                   </div>
 
                   {cls.section && (
                     <div style={{
                       fontSize: '0.75rem', fontWeight: 600,
-                      color: ac.color,
-                      background: ac.bg,
-                      border: `1px solid ${ac.border}`,
-                      borderRadius: 999,
-                      padding: '2px 8px',
-                      marginBottom: 10,
+                      color: ac.color, background: ac.bg,
+                      border: `1px solid ${ac.border}`, borderRadius: 999,
+                      padding: '2px 8px', marginBottom: 10,
                     }}>
                       Section {cls.section}
                     </div>
@@ -916,11 +995,7 @@ export default function AdminMarksPage() {
                     <span style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Users size={12} /> {cls.studentCount ?? '—'} students
                     </span>
-                    <span style={{
-                      marginLeft: 'auto', fontSize: '0.75rem',
-                      color: ac.color, fontWeight: 600,
-                      display: 'flex', alignItems: 'center', gap: 2,
-                    }}>
+                    <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: ac.color, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 2 }}>
                       Open <ChevronRight size={13} />
                     </span>
                   </div>

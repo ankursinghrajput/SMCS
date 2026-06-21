@@ -29,22 +29,15 @@ adminRouter.get("/dashboard-stats", authUser, authorizeRoles("admin", "faculty")
         averageAttendance = parseFloat(((presentOrLate / attendanceRecords.length) * 100).toFixed(2));
     }
 
-    const recentMarks = await Marks.find()
-        .populate("student", "name")
-        .populate("subject", "name")
-        .sort({ createdAt: -1 })
-        .limit(5);
-
     const recentNotices = await Notice.find()
         .sort({ createdAt: -1 })
-        .limit(5);
+        .limit(1);
 
     res.status(200).json({
         totalStudents,
         totalFaculty,
         totalClasses,
         averageAttendance,
-        recentMarks,
         recentNotices
     });
 }));

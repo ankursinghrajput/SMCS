@@ -17,6 +17,7 @@ import AdminMarksPage from './pages/admin/MarksPage';
 import AdminAttendancePage from './pages/admin/AttendancePage';
 import ClassesPage from './pages/admin/ClassesPage';
 import SubjectsPage from './pages/admin/SubjectsPage';
+import HolidaysPage from './pages/HolidaysPage';
 
 // Layout
 import Sidebar from './components/Sidebar';
@@ -91,6 +92,9 @@ function AppContent() {
 
       case 'subjects':
         return <SubjectsPage />;
+
+      case 'holidays':
+        return <HolidaysPage />;
 
       default:
         return <DashboardPage />;

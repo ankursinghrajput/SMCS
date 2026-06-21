@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import { Home, Calendar, ClipboardList, Bell, GraduationCap, Users, School, LogOut, X, BookOpen } from 'lucide-react';
+import { Home, Calendar, ClipboardList, Bell, GraduationCap, Users, School, LogOut, X, BookOpen, CalendarDays } from 'lucide-react';
 
 const navConfig = {
   student: [
@@ -7,6 +7,7 @@ const navConfig = {
     { id: 'attendance', label: 'My Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
     { id: 'marks', label: 'My Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
     { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} />, badge: 2 },
+    { id: 'holidays', label: 'Holidays', icon: <CalendarDays size={20} strokeWidth={1.5} /> },
   ],
   faculty: [
     { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} strokeWidth={1.5} /> },
@@ -14,6 +15,7 @@ const navConfig = {
     { id: 'attendance', label: 'Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
     { id: 'marks', label: 'Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
     { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} />, badge: 1 },
+    { id: 'holidays', label: 'Holidays', icon: <CalendarDays size={20} strokeWidth={1.5} /> },
   ],
   admin: [
     { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} strokeWidth={1.5} /> },
@@ -24,6 +26,7 @@ const navConfig = {
     { id: 'attendance', label: 'Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
     { id: 'marks', label: 'Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
     { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} /> },
+    { id: 'holidays', label: 'Holidays', icon: <CalendarDays size={20} strokeWidth={1.5} /> },
   ],
 };
 
