@@ -1,8 +1,15 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Menu } from 'lucide-react';
+import { Menu, Clock } from 'lucide-react';
 
 export default function Topbar({ activePage, onMenuClick }) {
   const { user } = useAuth();
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const pageTitles = {
     dashboard: 'Dashboard',
@@ -12,11 +19,20 @@ export default function Topbar({ activePage, onMenuClick }) {
     marks: 'Marks & Grades',
     notices: 'Notice Board',
     classes: 'Classes',
+    holidays: 'Holidays',
   };
 
   const now = new Date().toLocaleDateString('en-IN', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
+
+  const timeString = currentTime.toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }).toUpperCase();
 
   const initials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
@@ -51,11 +67,20 @@ export default function Topbar({ activePage, onMenuClick }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Running Clock */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          color: 'var(--clr-text-secondary)', fontSize: '0.82rem', fontWeight: 600,
+          padding: '6px 12px'
+        }}>
+          <Clock size={15} strokeWidth={2} />
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{timeString}</span>
+        </div>
+
         {/* User greeting */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          background: 'var(--clr-bg)', borderRadius: 'var(--radius-md)',
           padding: '8px 14px'
         }}>
           <div style={{

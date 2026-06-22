@@ -339,9 +339,9 @@ export default function HolidaysPage() {
           {/* Search & filter */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
             <div style={{ position: 'relative', flex: 1, minWidth: '160px' }}>
-              <Search size={14} strokeWidth={1.5} style={{
-                position: 'absolute', left: '10px', top: '50%',
-                transform: 'translateY(-50%)', color: 'var(--clr-text-muted)', pointerEvents: 'none',
+              <Search size={16} strokeWidth={1.8} style={{
+                position: 'absolute', left: '12px', top: '50%',
+                transform: 'translateY(-50%)', color: 'var(--clr-text-secondary)', pointerEvents: 'none',
               }} />
               <input
                 id="holiday-search"
@@ -349,7 +349,7 @@ export default function HolidaysPage() {
                 placeholder="Search…"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                style={{ paddingLeft: '30px', height: '36px', fontSize: '0.82rem' }}
+                style={{ padding: '10px 16px 10px 38px', fontSize: '0.88rem', background: 'var(--clr-surface)', color: 'var(--clr-text-primary)' }}
               />
             </div>
             <select
@@ -357,7 +357,7 @@ export default function HolidaysPage() {
               className="form-select"
               value={filterType}
               onChange={e => setFilterType(e.target.value)}
-              style={{ height: '36px', fontSize: '0.82rem', width: 'auto', minWidth: '110px' }}
+              style={{ padding: '10px 36px 10px 16px', fontSize: '0.88rem', width: 'auto', minWidth: '130px', background: 'var(--clr-surface)', color: 'var(--clr-text-primary)' }}
             >
               <option value="all">All Types</option>
               {Object.entries(holidayTypeConfig).map(([k, v]) => (
@@ -367,7 +367,7 @@ export default function HolidaysPage() {
           </div>
 
           {/* List heading */}
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--clr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--clr-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
             {monthNames[viewMonth]} {viewYear} — {filteredHolidays.length} event{filteredHolidays.length !== 1 ? 's' : ''}
           </div>
 
@@ -375,8 +375,8 @@ export default function HolidaysPage() {
             <div style={{ padding: '32px', textAlign: 'center', color: 'var(--clr-text-muted)' }}>Loading…</div>
           ) : filteredHolidays.length === 0 ? (
             <div className="card" style={{ padding: '32px', textAlign: 'center' }}>
-              <div style={{ opacity: 0.2, marginBottom: '10px' }}><PartyPopper size={40} strokeWidth={1} /></div>
-              <p style={{ color: 'var(--clr-text-muted)', fontSize: '0.875rem' }}>
+              <div style={{ opacity: 0.6, color: 'var(--clr-primary)', marginBottom: '10px', display: 'flex', justifyContent: 'center' }}><PartyPopper size={40} strokeWidth={1.5} /></div>
+              <p style={{ color: 'var(--clr-text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>
                 {searchTerm || filterType !== 'all' ? 'No events match your filter.' : 'No holidays this month.'}
               </p>
             </div>
