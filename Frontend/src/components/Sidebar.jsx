@@ -6,7 +6,7 @@ const navConfig = {
     { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} strokeWidth={1.5} /> },
     { id: 'attendance', label: 'My Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
     { id: 'marks', label: 'My Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
-    { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} />, badge: 2 },
+    { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} /> },
     { id: 'holidays', label: 'Holidays', icon: <CalendarDays size={20} strokeWidth={1.5} /> },
   ],
   faculty: [
@@ -14,7 +14,7 @@ const navConfig = {
     { id: 'students', label: 'Students', icon: <GraduationCap size={20} strokeWidth={1.5} /> },
     { id: 'attendance', label: 'Attendance', icon: <Calendar size={20} strokeWidth={1.5} /> },
     { id: 'marks', label: 'Marks', icon: <ClipboardList size={20} strokeWidth={1.5} /> },
-    { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} />, badge: 1 },
+    { id: 'notices', label: 'Notices', icon: <Bell size={20} strokeWidth={1.5} /> },
     { id: 'holidays', label: 'Holidays', icon: <CalendarDays size={20} strokeWidth={1.5} /> },
   ],
   admin: [

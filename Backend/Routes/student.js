@@ -3,6 +3,7 @@ const { authUser, authorizeRoles } = require("../middlewares/auth");
 const Attendance = require("../models/attendance");
 const Marks = require("../models/marks");
 const User = require("../models/user");
+const Notice = require("../models/noticeBoard");
 const asyncHandler = require("express-async-handler");
 const studentRouter = express.Router();
 
@@ -57,6 +58,14 @@ studentRouter.get("/dashboard", authUser, authorizeRoles("admin", "faculty", "st
 
         responsePayload.attendanceDetails = attendanceDetails;
         responsePayload.attendanceWarnings = attendanceWarnings;
+
+        // Fetch recent active notices for student
+        const recentNotices = await Notice.find({
+            audience: { $in: ["all", "student"] },
+            $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }]
+        }).sort({ createdAt: -1 }).limit(1);
+
+        responsePayload.recentNotices = recentNotices;
     }
 
     res.status(200).json(responsePayload);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const gradeColor = (grade) => {
   if (['A+', 'A'].includes(grade)) return { bg: 'var(--clr-secondary-light)', color: 'var(--clr-secondary-dark)' };
@@ -24,26 +24,18 @@ function MarkCard({ m, index }) {
         borderLeft: `4px solid ${passed ? 'var(--clr-secondary)' : 'var(--clr-danger)'}`,
       }}
     >
-      {/* ── Header (always visible, clickable) ── */}
-      <button
-        id={`marks-card-toggle-${index}`}
-        onClick={() => setOpen(o => !o)}
+      {/* ── Subject Row ── */}
+      <div
         style={{
           width: '100%',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
           padding: '16px 18px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '12px',
-          textAlign: 'left',
         }}
-        aria-expanded={open}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-          {/* Subject initials avatar */}
           <div style={{
             width: 40, height: 40, borderRadius: '10px', flexShrink: 0,
             background: 'var(--clr-bg)',
@@ -66,93 +58,75 @@ function MarkCard({ m, index }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          {/* Blurred score preview — shown when collapsed */}
-          {!open && (
-            <div style={{
-              fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1rem',
-              color: 'var(--clr-text-secondary)',
-              filter: 'blur(6px)',
-              userSelect: 'none', pointerEvents: 'none',
-              transition: 'filter 0.3s',
-            }}>
-              {m.marks}/{m.totalMarks}
-            </div>
-          )}
+        {/* Dropdown toggle on the right side */}
+        <button
+          id={`marks-dropdown-toggle-${index}`}
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '8px',
+            color: 'var(--clr-text-secondary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 'var(--radius-sm)',
+            transition: 'background 0.2s',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--clr-bg)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+        >
+          {open ? <ChevronUp size={20} strokeWidth={2} /> : <ChevronDown size={20} strokeWidth={2} />}
+        </button>
+      </div>
 
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
-            fontSize: '0.72rem', fontWeight: 600,
-            color: open ? 'var(--clr-primary)' : 'var(--clr-text-muted)',
-            transition: 'color 0.2s',
-          }}>
-            {open ? <EyeOff size={14} strokeWidth={2} /> : <Eye size={14} strokeWidth={2} />}
-            {open ? <ChevronUp size={15} strokeWidth={2} /> : <ChevronDown size={15} strokeWidth={2} />}
-          </div>
-        </div>
-      </button>
-
-      {/* ── Expanded Details ── */}
+      {/* ── Expanded Detail Layout (Simple UI) ── */}
       <div style={{
-        maxHeight: open ? '400px' : '0',
+        maxHeight: open ? '200px' : '0',
         overflow: 'hidden',
-        transition: 'max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'max-height 0.3s ease-in-out',
+        background: 'var(--clr-bg)',
       }}>
         <div style={{
-          padding: '0 18px 18px',
+          padding: '16px 18px',
           borderTop: '1px solid var(--clr-border)',
-          paddingTop: '16px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '24px',
+          justifyContent: 'space-between',
+          alignItems: 'center'
         }}>
-          {/* Score row */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '12px' }}>
+          {/* Simple Scores details */}
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
             <div>
-              <p style={{ fontSize: '0.7rem', color: 'var(--clr-text-muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Marks Obtained</p>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: '2.4rem', fontWeight: 800, color: 'var(--clr-text-primary)', lineHeight: 1 }}>
-                {m.marks}
-              </span>
-              <span style={{ color: 'var(--clr-text-muted)', fontSize: '0.9rem', marginLeft: '4px' }}>/ {m.totalMarks}</span>
+              <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--clr-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Obtained Marks</span>
+              <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--clr-text-primary)' }}>{m.marks}</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--clr-text-muted)' }}> / {m.totalMarks}</span>
             </div>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--clr-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Passing Marks</span>
+              <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--clr-text-primary)' }}>{m.passingMarks}</span>
+            </div>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--clr-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Percentage</span>
+              <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--clr-text-primary)' }}>{pct}%</span>
+            </div>
+          </div>
 
-            {/* Grade badge */}
-            <div style={{
-              width: 56, height: 56, borderRadius: '50%',
-              background: gc.bg, color: gc.color,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexDirection: 'column',
-              fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.1rem',
+          {/* Simple Grade Label */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--clr-text-secondary)', fontWeight: 600 }}>Grade:</span>
+            <span style={{
+              background: gc.bg,
+              color: gc.color,
+              padding: '4px 12px',
+              borderRadius: 'var(--radius-full)',
+              fontWeight: 700,
+              fontSize: '0.9rem'
             }}>
               {m.grade || '—'}
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="attendance-bar-bg" style={{ marginBottom: '8px', height: '8px', borderRadius: '999px' }}>
-            <div
-              className="attendance-bar-fill"
-              style={{
-                width: `${pct}%`,
-                background: pct >= 75 ? 'var(--clr-secondary)' : pct >= 40 ? 'var(--clr-primary)' : 'var(--clr-danger)',
-                height: '100%',
-                borderRadius: '999px',
-                transition: 'width 0.6s ease',
-              }}
-            />
-          </div>
-
-          {/* Stats row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '0.68rem', color: 'var(--clr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Score</div>
-                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--clr-text-primary)' }}>{pct}%</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '0.68rem', color: 'var(--clr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Pass Mark</div>
-                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--clr-text-primary)' }}>{m.passingMarks}</div>
-              </div>
-            </div>
-            <span className={`badge ${passed ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.72rem' }}>
-              {passed ? '✅ Passed' : '❌ Failed'}
             </span>
           </div>
         </div>
@@ -166,7 +140,6 @@ export default function MarksPage() {
   const [marksData, setMarksData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [allOpen, setAllOpen] = useState(false);
 
   useEffect(() => {
     const fetchMarks = async () => {
@@ -201,6 +174,8 @@ export default function MarksPage() {
           <h1 className="page-title">📝 Marks &amp; Grades</h1>
           <p className="page-subtitle">View your academic performance</p>
         </div>
+        
+        {/* Buttons to see the exam type marks separately */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {examTypes.map(t => (
             <button
@@ -245,19 +220,10 @@ export default function MarksPage() {
         </div>
       </div>
 
-      {/* ── Accordion Cards Section ── */}
+      {/* ── Subject Cards Section ── */}
       <div className="card" style={{ marginBottom: '24px' }}>
         <div className="card-header">
           <h3 className="card-title">Subject Results</h3>
-          <button
-            id="toggle-all-marks"
-            className="btn btn-ghost btn-sm"
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem' }}
-            onClick={() => setAllOpen(o => !o)}
-          >
-            {allOpen ? <EyeOff size={13} strokeWidth={2} /> : <Eye size={13} strokeWidth={2} />}
-            {allOpen ? 'Hide All' : 'Reveal All'}
-          </button>
         </div>
 
         {filtered.length === 0 ? (
@@ -267,54 +233,10 @@ export default function MarksPage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {filtered.map((m, i) => (
-              <MarkCard key={`${m.subject?._id}-${m.examType}-${i}`} m={m} index={i} allOpen={allOpen} />
+              <MarkCard key={`${m.subject?._id}-${m.examType}-${i}`} m={m} index={i} />
             ))}
           </div>
         )}
-      </div>
-
-      {/* ── Detailed Table ── */}
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">Detailed Marks Report</h3>
-        </div>
-        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-          <table className="table" style={{ minWidth: '520px' }}>
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>Exam Type</th>
-                <th>Marks Obtained</th>
-                <th>Total Marks</th>
-                <th>Passing Marks</th>
-                <th>Grade</th>
-                <th>Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((m, i) => (
-                <tr key={i}>
-                  <td><strong>{m.subject?.name || '—'}</strong></td>
-                  <td><span className="badge badge-accent">{m.examType}</span></td>
-                  <td><strong>{m.marks}</strong></td>
-                  <td>{m.totalMarks}</td>
-                  <td>{m.passingMarks}</td>
-                  <td>
-                    {(() => {
-                      const gc = gradeColor(m.grade);
-                      return <span style={{ background: gc.bg, color: gc.color, padding: '2px 10px', borderRadius: '999px', fontWeight: 700, fontSize: '0.8rem' }}>{m.grade}</span>;
-                    })()}
-                  </td>
-                  <td>
-                    <span className={`badge ${m.marks >= m.passingMarks ? 'badge-success' : 'badge-danger'}`}>
-                      {m.marks >= m.passingMarks ? '✅ Pass' : '❌ Fail'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );

@@ -495,6 +495,8 @@ function StudentDashboard({ user }) {
 
   const attendanceDetails = data?.attendanceDetails || [];
   const attendanceWarnings = data?.attendanceWarnings || [];
+  const recentNotices = data?.recentNotices || [];
+  const latestNotice = recentNotices.length > 0 ? recentNotices[0] : null;
   const overallAttendance = attendanceDetails.length > 0
     ? Math.round(attendanceDetails.reduce((a, b) => a + b.percentage, 0) / attendanceDetails.length)
     : 0;
@@ -565,6 +567,59 @@ function StudentDashboard({ user }) {
                 </div>
               );
             })
+          )}
+        </div>
+
+        {/* Notice Board */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Megaphone size={20} strokeWidth={1.5} /> Notice Board
+            </h3>
+          </div>
+
+          {!latestNotice ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 0', gap: '10px' }}>
+              <div style={{ opacity: 0.2 }}><Megaphone size={40} strokeWidth={1} /></div>
+              <p style={{ color: 'var(--clr-text-muted)', fontSize: '0.875rem' }}>No active notices at this time</p>
+            </div>
+          ) : (
+            <div style={{
+              borderRadius: '12px',
+              border: `1px solid var(--clr-primary)30`,
+              borderLeft: `4px solid var(--clr-primary)`,
+              padding: '16px',
+              background: 'var(--clr-bg)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: '10px', flexShrink: 0,
+                  background: `var(--clr-primary-light)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--clr-primary)',
+                }}>
+                  <Megaphone size={20} strokeWidth={1.5} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--clr-text-primary)', marginBottom: '4px', lineHeight: 1.3 }}>
+                    {latestNotice.title}
+                  </div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--clr-text-secondary)', lineHeight: 1.6, marginBottom: '10px' }}>
+                    {latestNotice.description.slice(0, 200)}{latestNotice.description.length > 200 ? '…' : ''}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--clr-text-muted)' }}>
+                      {new Date(latestNotice.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                    {latestNotice.expiresAt && (
+                      <span style={{ fontSize: '0.68rem', fontWeight: 600, padding: '2px 7px', borderRadius: '20px', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                        Expires: {new Date(latestNotice.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>

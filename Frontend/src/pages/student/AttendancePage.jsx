@@ -359,7 +359,7 @@ export default function AttendancePage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '24px', alignItems: 'start', flexWrap: 'wrap' }}>
+      <div className="dashboard-grid" style={{ alignItems: 'start' }}>
         {/* Subject-wise Table */}
         <div className="card" style={{ minWidth: 0 }}>
           <div className="card-header">
@@ -431,7 +431,7 @@ export default function AttendancePage() {
         </div>
 
         {/* 6-Month Hover Calendar */}
-        <div className="card" style={{ minWidth: '300px', maxWidth: '340px' }}>
+        <div className="card" style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
           <div className="card-header">
             <h3 className="card-title" style={{ fontSize: '0.9rem' }}>📅 Attendance Calendar</h3>
           </div>
