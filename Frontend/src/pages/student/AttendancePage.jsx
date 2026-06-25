@@ -238,7 +238,7 @@ export default function AttendancePage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/student/attendance', { credentials: 'include' });
+        const res = await fetch(`/api/student/attendance?_t=${Date.now()}`, { credentials: 'include', headers: { 'Cache-Control': 'no-cache' } });
         if (!res.ok) {
           const d = await res.json();
           throw new Error(d.message || 'Failed to load attendance');

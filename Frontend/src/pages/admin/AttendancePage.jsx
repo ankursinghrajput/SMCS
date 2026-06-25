@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, CheckCircle, Save, Eye, Filter } from 'lucide-react';
+import { Calendar, CheckCircle, Save, Eye, Filter, XCircle } from 'lucide-react';
 
 // ─── Status helpers ──────────────────────────────────────────────────────────
 const STATUS_COLOR = {
@@ -206,10 +206,16 @@ function AdminCalendar({ calendarMap, onDateClick }) {
 export default function AdminAttendancePage() {
   const [activeTab, setActiveTab] = useState('mark'); // 'mark' | 'view'
 
-  // ── Shared state ──────────────────────────────────────────────────────────
+// ── Shared state ──────────────────────────────────────────────────────────
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
 
   // ── Mark Attendance state ─────────────────────────────────────────────────
   const [markDate, setMarkDate] = useState(new Date().toISOString().split('T')[0]);
@@ -247,29 +253,43 @@ export default function AdminAttendancePage() {
     init();
   }, []);
 
-  // ── Load students for mark tab when class changes ─────────────────────────
+  // ── Set default subject when class changes ────────────────────────────────
   useEffect(() => {
-    if (!markClass) { setStudents([]); setAttendance([]); setMarkSubject(''); return; }
-    const fetchStudents = async () => {
+    if (markClass) {
+      const classSubjects = subjects.filter(s => s.classId?._id === markClass || s.classId === markClass);
+      setMarkSubject(classSubjects.length > 0 ? classSubjects[0]._id : '');
+    } else {
+      setMarkSubject('');
+    }
+  }, [markClass, subjects]);
+
+  // ── Load students and existing attendance for mark tab ────────────────────
+  useEffect(() => {
+    if (!markClass) { setStudents([]); setAttendance([]); return; }
+    const fetchStudentsAndAttendance = async () => {
       setLoadingStudents(true);
       try {
-        const res = await fetch(`/api/admin/students?classId=${markClass}&limit=200`, { credentials: 'include' });
+        let url = `/api/attendance/class/${markClass}?date=${markDate}`;
+        if (markSubject) url += `&subject=${markSubject}`;
+        const res = await fetch(url, { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
-          const loaded = data.allStudents || [];
-          setStudents(loaded);
-          setAttendance(loaded.map(s => ({ studentId: s._id, name: s.name, status: 'present' })));
+          setStudents(data.students || []);
+          const merged = data.merged || [];
+          setAttendance(merged.map(m => ({
+            studentId: m.studentId,
+            name: m.name,
+            status: m.recorded ? m.status : 'present'
+          })));
         }
       } catch (err) {
-        console.error('Failed to load students:', err);
+        console.error('Failed to load students and attendance:', err);
       } finally {
         setLoadingStudents(false);
       }
     };
-    fetchStudents();
-    const classSubjects = subjects.filter(s => s.classId?._id === markClass || s.classId === markClass);
-    setMarkSubject(classSubjects.length > 0 ? classSubjects[0]._id : '');
-  }, [markClass, subjects]);
+    fetchStudentsAndAttendance();
+  }, [markClass, markDate, markSubject]);
 
   // ── Fetch calendar when view class/subject changes ────────────────────────
   useEffect(() => {
@@ -312,8 +332,8 @@ export default function AdminAttendancePage() {
   const handleMarkAllPresent = () => setAttendance(prev => prev.map(a => ({ ...a, status: 'present' })));
 
   const handleSave = async () => {
-    if (!markClass) { alert('Please select a class'); return; }
-    if (!markSubject) { alert('Please select a subject'); return; }
+    if (!markClass) { showToast('Please select a class', 'error'); return; }
+    if (!markSubject) { showToast('Please select a subject', 'error'); return; }
     try {
       const records = attendance.map(a => ({ student: a.studentId, status: a.status }));
       const res = await fetch('/api/attendance/mark-bulk', {
@@ -324,29 +344,29 @@ export default function AdminAttendancePage() {
       });
       if (res.ok) {
         const data = await res.json();
-        alert(data.message || 'Attendance saved successfully!');
+        showToast(data.message || 'Attendance saved successfully!', 'success');
         // Refresh calendar
         if (viewClass === markClass) {
           setCalendarMap({});
         }
       } else {
         const errData = await res.json();
-        alert(errData.message || 'Failed to save attendance');
+        showToast(errData.message || 'Failed to save attendance', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred while saving attendance');
+      showToast('An error occurred while saving attendance', 'error');
     }
   };
 
   // ── View attendance filter handler ────────────────────────────────────────────
-  const handleApplyFilter = async () => {
+  const fetchAttendanceForView = async (dateToFetch) => {
     if (!viewClass) { alert('Please select a class'); return; }
     if (!viewSubject) { alert('Please select a subject'); return; }
     setLoadingView(true);
     setViewRecords(null);
     try {
-      let url = `/api/attendance/class/${viewClass}?date=${viewDate}`;
+      let url = `/api/attendance/class/${viewClass}?date=${dateToFetch}`;
       if (viewSubject) url += `&subject=${viewSubject}`;
       const res = await fetch(url, { credentials: 'include' });
       if (res.ok) {
@@ -364,9 +384,16 @@ export default function AdminAttendancePage() {
     }
   };
 
-  // ── Clicking a date in calendar auto-fills the view date ─────────────────
+  const handleApplyFilter = () => {
+    fetchAttendanceForView(viewDate);
+  };
+
+  // ── Clicking a date in calendar auto-fills the view date and fetches ────────
   const handleCalendarDateClick = (dateKey) => {
     setViewDate(dateKey);
+    if (viewClass && viewSubject) {
+      fetchAttendanceForView(dateKey);
+    }
   };
 
   const markClassObj = classes.find(c => c._id === markClass);
@@ -395,6 +422,30 @@ export default function AdminAttendancePage() {
         </h1>
         <p className="page-subtitle">Mark and review student attendance class-wise</p>
       </div>
+
+      {toast.show && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 24,
+          right: 24,
+          zIndex: 10000,
+          background: toast.type === 'success' ? '#22c55e' : '#ef4444',
+          color: '#fff',
+          padding: '12px 20px',
+          borderRadius: 8,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          fontWeight: 600,
+          fontSize: '0.9rem',
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          {toast.type === 'success' ? <CheckCircle size={20} /> : <XCircle size={20} />}
+          {toast.message}
+        </div>,
+        document.body
+      )}
 
       {loadingClasses ? (
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading…</div>

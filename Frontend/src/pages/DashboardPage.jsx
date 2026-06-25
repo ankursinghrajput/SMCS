@@ -483,7 +483,7 @@ function StudentDashboard({ user }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/student/dashboard', { credentials: 'include' })
+    fetch(`/api/student/dashboard?_t=${Date.now()}`, { credentials: 'include', headers: { 'Cache-Control': 'no-cache' } })
       .then(res => res.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });

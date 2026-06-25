@@ -64,7 +64,12 @@ attendanceRouter.post("/mark-bulk", authUser, authorizeRoles("admin", "faculty")
                 results.failed.push({ student, reason: "Student not found" });
                 continue;
             }
-            const existing = await Attendance.findOne({ student, date, subject });
+            const { start, end } = dayBounds(date);
+            const existing = await Attendance.findOne({ 
+                student, 
+                subject, 
+                date: { $gte: start, $lte: end } 
+            });
             if (existing) {
                 // Update existing record instead of failing
                 existing.status = status || existing.status;
@@ -74,7 +79,7 @@ attendanceRouter.post("/mark-bulk", authUser, authorizeRoles("admin", "faculty")
             }
             const attendance = new Attendance({
                 student,
-                date,
+                date: start, // use normalized start of day
                 status: status || "absent",
                 subject,
                 markedBy: req.user._id
