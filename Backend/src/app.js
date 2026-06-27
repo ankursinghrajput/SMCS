@@ -38,13 +38,13 @@ const attendanceRoutes = require("../Routes/attendance");
 const academicRoutes = require("../Routes/academic");
 const holidayRoutes = require("../Routes/holiday");
 
-app.use("/", authRoutes);
-app.use("/admin", adminRoutes);
-app.use("/faculty", facultyRoutes);
-app.use("/student", studentRoutes);
-app.use("/attendance", attendanceRoutes);
-app.use("/academic", academicRoutes);
-app.use("/holiday", holidayRoutes);
+app.use("/api", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/faculty", facultyRoutes);
+app.use("/api/student", studentRoutes);
+app.use("/api/attendance", attendanceRoutes);
+app.use("/api/academic", academicRoutes);
+app.use("/api/holiday", holidayRoutes);
 
 // 404 handler — no route matched
 app.use((req, res) => {
