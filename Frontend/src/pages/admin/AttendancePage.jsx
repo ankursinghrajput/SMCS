@@ -49,7 +49,11 @@ function AdminCalendar({ calendarMap, onDateClick }) {
 
   function toKey(d) {
     if (!d) return '';
-    return (d instanceof Date ? d : new Date(d)).toISOString().split('T')[0];
+    const dt = d instanceof Date ? d : new Date(d);
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
   const grid = getGrid(year, month);
@@ -218,7 +222,7 @@ export default function AdminAttendancePage() {
   };
 
   // ── Mark Attendance state ─────────────────────────────────────────────────
-  const [markDate, setMarkDate] = useState(new Date().toISOString().split('T')[0]);
+  const [markDate, setMarkDate] = useState(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; });
   const [markClass, setMarkClass] = useState('');
   const [markSubject, setMarkSubject] = useState('');
   const [students, setStudents] = useState([]);
@@ -228,7 +232,7 @@ export default function AdminAttendancePage() {
   // ── View Attendance state ─────────────────────────────────────────────────
   const [viewClass, setViewClass] = useState('');
   const [viewSubject, setViewSubject] = useState('');
-  const [viewDate, setViewDate] = useState(new Date().toISOString().split('T')[0]);
+  const [viewDate, setViewDate] = useState(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; });
   const [viewRecords, setViewRecords] = useState(null); // null = not fetched yet
   const [loadingView, setLoadingView] = useState(false);
   const [calendarMap, setCalendarMap] = useState({});
@@ -642,7 +646,7 @@ export default function AdminAttendancePage() {
                     <label className="form-label" htmlFor="view-date">Date</label>
                     <input id="view-date" type="date" className="form-input" value={viewDate}
                       onChange={e => { setViewDate(e.target.value); setViewRecords(null); }}
-                      max={new Date().toISOString().split('T')[0]} />
+                      max={(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })()} />
                   </div>
 
                   {/* ★ Apply Filter Button ★ */}

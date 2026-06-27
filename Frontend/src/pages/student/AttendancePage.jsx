@@ -5,21 +5,21 @@ import { useAuth } from '../../context/AuthContext';
 // ─── Utility helpers ────────────────────────────────────────────────────────
 const STATUS_COLOR = {
   present: '#22c55e',
-  late:    '#f59e0b',
-  absent:  '#ef4444',
+  late: '#f59e0b',
+  absent: '#ef4444',
   excused: '#6366f1',
   'not-marked': '#94a3b8',
 };
 const STATUS_BG = {
   present: '#dcfce7',
-  late:    '#fef3c7',
-  absent:  '#fee2e2',
+  late: '#fef3c7',
+  absent: '#fee2e2',
   excused: '#ede9fe',
 };
 const STATUS_LABEL = {
   present: 'Present',
-  late:    'Late',
-  absent:  'Absent',
+  late: 'Late',
+  absent: 'Absent',
   excused: 'Excused',
 };
 
@@ -35,10 +35,16 @@ function getMonthGrid(year, month) {
   return cells;
 }
 
-function toDateKey(d) {
+function toLocalDateStr(d) {
   if (!d) return '';
   const dt = d instanceof Date ? d : new Date(d);
-  return dt.toISOString().split('T')[0];
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function toDateKey(d) {
+  return toLocalDateStr(d);
 }
 
 // ─── Mini Calendar with hover tooltip ────────────────────────────────────────
@@ -346,7 +352,7 @@ export default function AttendancePage() {
             <p style={{ opacity: 0.8, fontSize: '0.85rem', marginBottom: '4px' }}>Overall Attendance</p>
             <div style={{ fontFamily: 'var(--font-heading)', fontSize: '2.8rem', fontWeight: 800, lineHeight: 1.1 }}>{overall}%</div>
             <p style={{ opacity: 0.75, fontSize: '0.82rem', marginTop: '6px' }}>
-              {overall >= 75 ? '✅ You meet the 75% requirement' : '❌ Below required 75% attendance'}
+              {overall >= 75 ? 'You meet the 75% requirement' : 'Below required 75% attendance'}
             </p>
           </div>
           <div style={{ textAlign: 'right' }}>
