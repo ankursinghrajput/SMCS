@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../lib/api';
 
 const AuthContext = createContext(null);
 
@@ -8,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/profile', { credentials: 'include' });
+      const res = await apiFetch('/api/profile');
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
@@ -29,11 +30,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/login', {
+      const res = await apiFetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
-        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) {
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
       }
       
       // Fetch profile to get full user details
-      const profileRes = await fetch('/api/profile', { credentials: 'include' });
+      const profileRes = await apiFetch('/api/profile');
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setUser(profileData.user);
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
-      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      await apiFetch('/api/logout', { method: 'POST' });
       setUser(null);
     } catch (err) {
       console.error('Logout error:', err);

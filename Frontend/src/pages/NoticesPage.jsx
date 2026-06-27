@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../lib/api';
 import { Megaphone, Clock, CalendarX, Pencil, Trash2, Plus, X } from 'lucide-react';
 
 // Helper: days remaining from expiresAt
@@ -31,7 +32,7 @@ export default function NoticesPage() {
 
   const fetchNotices = async () => {
     try {
-      const res = await fetch('/api/admin/notice', { credentials: 'include' });
+      const res = await apiFetch('/api/admin/notice');
       if (res.ok) {
         const data = await res.json();
         setNotices(data.notices || []);
@@ -87,11 +88,10 @@ export default function NoticesPage() {
         audience: form.audience,
         durationDays: form.durationDays ? Number(form.durationDays) : 0,
       };
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        credentials: 'include',
       });
       if (res.ok) {
         fetchNotices();
@@ -109,7 +109,7 @@ export default function NoticesPage() {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this notice?')) return;
     try {
-      const res = await fetch(`/api/admin/notice/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await apiFetch(`/api/admin/notice/${id}`, { method: 'DELETE' });
       if (res.ok) fetchNotices();
       else { const e = await res.json(); alert(e.message || 'Failed to delete'); }
     } catch (err) { console.error(err); }

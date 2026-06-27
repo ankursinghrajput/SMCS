@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiFetch } from '../../lib/api';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const gradeColor = (grade) => {
@@ -144,7 +145,7 @@ export default function MarksPage() {
   useEffect(() => {
     const fetchMarks = async () => {
       try {
-        const res = await fetch('/api/student/marks', { credentials: 'include' });
+      const res = await apiFetch('/api/student/marks');
         if (!res.ok) throw new Error('Failed to fetch marks');
         const data = await res.json();
         setMarksData(data.myMarks || []);

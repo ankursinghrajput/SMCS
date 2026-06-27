@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
+import { apiFetch } from '../../lib/api';
 
 // ─── Utility helpers ────────────────────────────────────────────────────────
 const STATUS_COLOR = {
@@ -244,7 +245,7 @@ export default function AttendancePage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/student/attendance?_t=${Date.now()}`, { credentials: 'include', headers: { 'Cache-Control': 'no-cache' } });
+        const res = await apiFetch(`/api/student/attendance?_t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
         if (!res.ok) {
           const d = await res.json();
           throw new Error(d.message || 'Failed to load attendance');

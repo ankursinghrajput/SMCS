@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar, CheckCircle, Save, Eye, Filter, XCircle } from 'lucide-react';
+import { apiFetch } from '../../lib/api';
 
 // ─── Status helpers ──────────────────────────────────────────────────────────
 const STATUS_COLOR = {
@@ -243,8 +244,8 @@ export default function AdminAttendancePage() {
     const init = async () => {
       try {
         const [classRes, subjectRes] = await Promise.all([
-          fetch('/api/academic/classes', { credentials: 'include' }),
-          fetch('/api/academic/subjects', { credentials: 'include' }),
+          apiFetch('/api/academic/classes'),
+          apiFetch('/api/academic/subjects'),
         ]);
         if (classRes.ok) { const d = await classRes.json(); setClasses(d.classes || []); }
         if (subjectRes.ok) { const d = await subjectRes.json(); setSubjects(d.subjects || []); }
@@ -275,7 +276,7 @@ export default function AdminAttendancePage() {
       try {
         let url = `/api/attendance/class/${markClass}?date=${markDate}`;
         if (markSubject) url += `&subject=${markSubject}`;
-        const res = await fetch(url, { credentials: 'include' });
+        const res = await apiFetch(url);
         if (res.ok) {
           const data = await res.json();
           setStudents(data.students || []);
@@ -303,7 +304,7 @@ export default function AdminAttendancePage() {
       try {
         let url = `/api/attendance/calendar?classId=${viewClass}`;
         if (viewSubject) url += `&subject=${viewSubject}`;
-        const res = await fetch(url, { credentials: 'include' });
+        const res = await apiFetch(url);
         if (res.ok) {
           const data = await res.json();
           const map = {};
@@ -340,11 +341,10 @@ export default function AdminAttendancePage() {
     if (!markSubject) { showToast('Please select a subject', 'error'); return; }
     try {
       const records = attendance.map(a => ({ student: a.studentId, status: a.status }));
-      const res = await fetch('/api/attendance/mark-bulk', {
+      const res = await apiFetch('/api/attendance/mark-bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject: markSubject, date: markDate, records }),
-        credentials: 'include'
       });
       if (res.ok) {
         const data = await res.json();
@@ -372,7 +372,7 @@ export default function AdminAttendancePage() {
     try {
       let url = `/api/attendance/class/${viewClass}?date=${dateToFetch}`;
       if (viewSubject) url += `&subject=${viewSubject}`;
-      const res = await fetch(url, { credentials: 'include' });
+      const res = await apiFetch(url);
       if (res.ok) {
         const data = await res.json();
         setViewRecords(data.merged || []);

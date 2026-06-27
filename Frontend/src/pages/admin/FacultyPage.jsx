@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Search, Pencil, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
+import { apiFetch } from '../../lib/api';
 
 const validateContact = (val) => /^[0-9]{10}$/.test(val);
 
@@ -17,7 +18,7 @@ export default function FacultyPage() {
 
   const fetchFaculty = async () => {
     try {
-      const res = await fetch('/api/admin/faculties?limit=100', { credentials: 'include' });
+      const res = await apiFetch('/api/admin/faculties?limit=100');
       if (res.ok) {
         const data = await res.json();
         setFaculty(data.allFaculties || []);
@@ -76,11 +77,10 @@ export default function FacultyPage() {
         delete payload.password;
       }
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        credentials: 'include'
       });
 
       if (res.ok) {
@@ -103,9 +103,8 @@ export default function FacultyPage() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/admin/faculty/${deleteTarget.id}`, {
+      const res = await apiFetch(`/api/admin/faculty/${deleteTarget.id}`, {
         method: 'DELETE',
-        credentials: 'include'
       });
       if (res.ok) {
         fetchFaculty();

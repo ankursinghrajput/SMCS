@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
 import { School, Users, Plus, X, Trash2, UserPlus, Pencil } from 'lucide-react';
+import { apiFetch } from '../../lib/api';
 
 export default function ClassesPage() {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ export default function ClassesPage() {
 
   const fetchClasses = async () => {
     try {
-      const res = await fetch('/api/academic/classes', { credentials: 'include' });
+      const res = await apiFetch('/api/academic/classes');
       if (res.ok) {
         const data = await res.json();
         setClasses(data.classes || []);
@@ -44,11 +45,10 @@ export default function ClassesPage() {
   const handleAddClass = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/academic/class', {
+      const res = await apiFetch('/api/academic/class', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
-        credentials: 'include'
       });
       if (res.ok) {
         fetchClasses();
@@ -73,11 +73,10 @@ export default function ClassesPage() {
   const handleEditClass = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`/api/academic/class/${editingClass._id}`, {
+      const res = await apiFetch(`/api/academic/class/${editingClass._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formEdit),
-        credentials: 'include'
       });
       if (res.ok) {
         setFormEdit({ name: '', section: '' });
@@ -103,9 +102,8 @@ export default function ClassesPage() {
   const handleConfirmDelete = async () => {
     if (!classToDelete) return;
     try {
-      const res = await fetch(`/api/academic/class/${classToDelete}`, {
+      const res = await apiFetch(`/api/academic/class/${classToDelete}`, {
         method: 'DELETE',
-        credentials: 'include'
       });
       if (res.ok) {
         setClassToDelete(null);
@@ -128,14 +126,14 @@ export default function ClassesPage() {
     setAddStudentId('');
     try {
       // Fetch students in this class
-      const res = await fetch(`/api/academic/class/${cls._id}/students`, { credentials: 'include' });
+      const res = await apiFetch(`/api/academic/class/${cls._id}/students`);
       if (res.ok) {
         const data = await res.json();
         setClassStudents(data.students || []);
       }
       // If admin, also fetch all unassigned students to show in add dropdown
       if (isAdmin) {
-        const allRes = await fetch('/api/admin/students?limit=500', { credentials: 'include' });
+        const allRes = await apiFetch('/api/admin/students?limit=500');
         if (allRes.ok) {
           const allData = await allRes.json();
           // Only show students not in this class
@@ -155,11 +153,10 @@ export default function ClassesPage() {
   const handleAddStudentToClass = async () => {
     if (!addStudentId) return;
     try {
-      const res = await fetch(`/api/admin/class/${selectedClass._id}/add-student`, {
+      const res = await apiFetch(`/api/admin/class/${selectedClass._id}/add-student`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId: addStudentId }),
-        credentials: 'include'
       });
       if (res.ok) {
         // Refresh both lists
@@ -178,11 +175,10 @@ export default function ClassesPage() {
   const handleRemoveStudent = async (studentId) => {
     if (!confirm('Remove this student from the class?')) return;
     try {
-      const res = await fetch(`/api/admin/class/${selectedClass._id}/remove-student`, {
+      const res = await apiFetch(`/api/admin/class/${selectedClass._id}/remove-student`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId }),
-        credentials: 'include'
       });
       if (res.ok) {
         await openStudentsModal(selectedClass);

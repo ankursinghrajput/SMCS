@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, Search, Pencil, Trash2, Plus, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
+import { apiFetch } from '../../lib/api';
 
 const validateContact = (val) => /^[0-9]{10}$/.test(val);
 
@@ -22,7 +23,7 @@ export default function StudentsPage() {
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch('/api/admin/students?limit=100', { credentials: 'include' });
+      const res = await apiFetch('/api/admin/students?limit=100');
       if (res.ok) {
         const data = await res.json();
         setStudents(data.allStudents || []);
@@ -36,7 +37,7 @@ export default function StudentsPage() {
 
   const fetchClasses = async () => {
     try {
-      const res = await fetch('/api/academic/classes', { credentials: 'include' });
+      const res = await apiFetch('/api/academic/classes');
       if (res.ok) {
         const data = await res.json();
         setClasses(data.classes || []);
@@ -106,11 +107,10 @@ export default function StudentsPage() {
       }
       if (!payload.classId) delete payload.classId;
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        credentials: 'include'
       });
 
       if (res.ok) {
@@ -133,9 +133,8 @@ export default function StudentsPage() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/admin/student/${deleteTarget.id}`, {
+      const res = await apiFetch(`/api/admin/student/${deleteTarget.id}`, {
         method: 'DELETE',
-        credentials: 'include'
       });
       if (res.ok) {
         fetchStudents();

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, Plus, X, Pencil, Trash2, ChevronDown } from 'lucide-react';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
+import { apiFetch } from '../../lib/api';
 
 const emptyForm = { name: '', classId: '', teacher: '', forAllClasses: false };
 
@@ -23,7 +24,7 @@ export default function SubjectsPage() {
   // ─── Fetch helpers ───────────────────────────────────────────────────────────
   const fetchSubjects = async () => {
     try {
-      const res = await fetch('/api/academic/subjects', { credentials: 'include' });
+      const res = await apiFetch('/api/academic/subjects');
       if (res.ok) {
         const data = await res.json();
         setSubjects(data.subjects || []);
@@ -36,8 +37,8 @@ export default function SubjectsPage() {
   const fetchMeta = async () => {
     try {
       const [classRes, facRes] = await Promise.all([
-        fetch('/api/academic/classes', { credentials: 'include' }),
-        fetch('/api/admin/faculties?limit=500', { credentials: 'include' }),
+        apiFetch('/api/academic/classes'),
+        apiFetch('/api/admin/faculties?limit=500'),
       ]);
       if (classRes.ok) {
         const d = await classRes.json();
@@ -114,11 +115,10 @@ export default function SubjectsPage() {
         body = JSON.stringify({ name: form.name.trim(), classId: form.classId, teacher: form.teacher });
       }
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body,
-        credentials: 'include',
       });
       if (res.ok) {
         await fetchSubjects();
@@ -142,9 +142,8 @@ export default function SubjectsPage() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/academic/subject/${deleteTarget.id}`, {
+      const res = await apiFetch(`/api/academic/subject/${deleteTarget.id}`, {
         method: 'DELETE',
-        credentials: 'include',
       });
       if (res.ok) {
         await fetchSubjects();

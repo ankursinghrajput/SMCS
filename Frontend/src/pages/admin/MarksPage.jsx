@@ -5,6 +5,7 @@ import {
   FlaskConical, Upload, BarChart2, Trash2, ArrowLeft,
   Search, Users, ChevronRight, AlertCircle, CheckCircle, XCircle,
 } from 'lucide-react';
+import { apiFetch } from '../../lib/api';
 
 /* ─── Exam Categories ─────────────────────────────────────────────────────── */
 const EXAM_TYPES = ['Unit Test 1', 'Unit Test 2', 'Mid-Term', 'Pre-Final', 'Final', 'Assignment', 'Practical'];
@@ -121,7 +122,7 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/admin/marks', {
+      const res = await apiFetch('/api/admin/marks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,7 +133,6 @@ function UploadMarksModal({ student, subjects, onClose, onSuccess }) {
           totalMarks:   Number(form.totalMarks),
           passingMarks: Number(form.passingMarks),
         }),
-        credentials: 'include',
       });
       if (res.ok) {
         onSuccess();
@@ -353,7 +353,7 @@ function StudentMarksModal({ student, onClose }) {
   useEffect(() => {
     const fetchMarks = async () => {
       try {
-        const res = await fetch(`/api/admin/marks?student=${student._id}&limit=200`, { credentials: 'include' });
+        const res = await apiFetch(`/api/admin/marks?student=${student._id}&limit=200`);
         if (res.ok) {
           const data = await res.json();
           setMarks(data.marks || []);
@@ -379,7 +379,7 @@ function StudentMarksModal({ student, onClose }) {
   const handleDelete = async (id) => {
     if (!confirm('Delete this mark record?')) return;
     try {
-      const res = await fetch(`/api/admin/marks/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await apiFetch(`/api/admin/marks/${id}`, { method: 'DELETE' });
       if (res.ok) setMarks(prev => prev.filter(m => m._id !== id));
     } catch { /* silent */ }
   };
@@ -581,8 +581,8 @@ function ClassMarksView({ classObj, onBack }) {
       setLoadingStudents(true);
       try {
         const [stuRes, subRes] = await Promise.all([
-          fetch(`/api/academic/class/${classObj._id}/students`, { credentials: 'include' }),
-          fetch(`/api/academic/subjects?classId=${classObj._id}`, { credentials: 'include' }),
+          apiFetch(`/api/academic/class/${classObj._id}/students`),
+          apiFetch(`/api/academic/subjects?classId=${classObj._id}`),
         ]);
         if (stuRes.ok) { const d = await stuRes.json(); setStudents(d.students || []); }
         if (subRes.ok) { const d = await subRes.json(); setSubjects(d.subjects || []); }
@@ -601,7 +601,7 @@ function ClassMarksView({ classObj, onBack }) {
       const counts = {};
       await Promise.all(students.map(async (s) => {
         try {
-          const res = await fetch(`/api/admin/marks?student=${s._id}&limit=200`, { credentials: 'include' });
+          const res = await apiFetch(`/api/admin/marks?student=${s._id}&limit=200`);
           if (res.ok) {
             const d = await res.json();
             counts[s._id] = (d.marks || []).length;
@@ -820,7 +820,7 @@ export default function AdminMarksPage() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const res = await fetch('/api/academic/classes', { credentials: 'include' });
+        const res = await apiFetch('/api/academic/classes');
         if (res.ok) {
           const data = await res.json();
           setClasses(data.classes || []);

@@ -4,6 +4,28 @@ require("dotenv").config();
 
 const app = express();
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
+
+// ── CORS ─────────────────────────────────────────────────────────────────────
+// Allow the Vercel frontend origin (set FRONTEND_URL env var on Render).
+// Falls back to localhost:5173 for local development.
+const allowedOrigins = [
+  process.env.FRONTEND_URL,          // e.g. https://smcs.vercel.app
+  'http://localhost:5173',
+  'http://localhost:5174',
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. curl, Postman) or matching allowed list
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
+  credentials: true,   // Required for cross-origin cookies
+}));
 
 app.use(express.json());
 app.use(cookieParser());

@@ -28,12 +28,12 @@ authRouter.post("/login", validateLogIn, asyncHandler(async (req, res) => {
         return;
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.cookie("token", token, { httpOnly: true, secure: true, maxAge: 60 * 60 * 1000 });
+    res.cookie("token", token, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 60 * 60 * 1000 });
     res.status(200).json({ message: "User logged in successfully" });
 }));
 
 authRouter.post("/logout", (req, res) => {
-    res.clearCookie("token", { httpOnly: true, secure: true });
+    res.clearCookie("token", { httpOnly: true, secure: true, sameSite: 'None' });
     res.status(200).json({ message: "User logged out successfully" });
 });
 

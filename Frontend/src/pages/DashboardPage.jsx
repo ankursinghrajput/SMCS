@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../lib/api';
 import {
   Calendar, BookOpen, AlertTriangle, GraduationCap, Users, School, Megaphone,
   ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X, PartyPopper, CalendarDays
@@ -67,7 +68,7 @@ function HolidayCalendar({ isAdmin }) {
 
   const fetchHolidays = useCallback(async () => {
     try {
-      const res = await fetch(`/api/holiday?year=${viewYear}&month=${viewMonth + 1}`, { credentials: 'include' });
+      const res = await apiFetch(`/api/holiday?year=${viewYear}&month=${viewMonth + 1}`);
       if (res.ok) {
         const data = await res.json();
         setHolidays(data.holidays || []);
@@ -134,7 +135,7 @@ function HolidayCalendar({ isAdmin }) {
   const handleDelete = async (id) => {
     if (!confirm('Delete this holiday?')) return;
     try {
-      const res = await fetch(`/api/holiday/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await apiFetch(`/api/holiday/${id}`, { method: 'DELETE' });
       if (res.ok) { fetchHolidays(); setShowModal(false); }
     } catch (err) { console.error(err); }
   };
@@ -146,11 +147,10 @@ function HolidayCalendar({ isAdmin }) {
     try {
       const url = editingHoliday ? `/api/holiday/${editingHoliday._id}` : '/api/holiday';
       const method = editingHoliday ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
-        credentials: 'include',
       });
       if (res.ok) { fetchHolidays(); setShowForm(false); setEditingHoliday(null); }
       else { const err = await res.json(); alert(err.message || 'Failed to save'); }
@@ -423,7 +423,7 @@ function UpcomingHolidays() {
 
   useEffect(() => {
     const now = new Date();
-    fetch(`/api/holiday?year=${now.getFullYear()}&month=${now.getMonth() + 1}`, { credentials: 'include' })
+    apiFetch(`/api/holiday?year=${now.getFullYear()}&month=${now.getMonth() + 1}`)
       .then(res => res.json())
       .then(data => {
         const upcoming = (data.holidays || [])
@@ -483,7 +483,7 @@ function StudentDashboard({ user }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/student/dashboard?_t=${Date.now()}`, { credentials: 'include', headers: { 'Cache-Control': 'no-cache' } })
+    apiFetch(`/api/student/dashboard?_t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } })
       .then(res => res.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });
@@ -634,7 +634,7 @@ function AdminDashboard({ user }) {
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    fetch('/api/admin/dashboard-stats', { credentials: 'include' })
+    apiFetch('/api/admin/dashboard-stats')
       .then(res => { if (!res.ok) throw new Error('Failed to fetch'); return res.json(); })
       .then(data => { setStats(data); setLoading(false); })
       .catch(err => { console.error(err); setLoading(false); });

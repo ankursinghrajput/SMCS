@@ -4,6 +4,7 @@ import {
   CalendarDays, ChevronLeft, ChevronRight, PartyPopper,
   Plus, Pencil, Trash2, X, Search
 } from 'lucide-react';
+import { apiFetch } from '../lib/api';
 
 const holidayTypeConfig = {
   national: { label: 'National', color: '#ef4444', bg: '#fee2e2', badge: 'badge-danger' },
@@ -66,7 +67,7 @@ export default function HolidaysPage() {
   const fetchHolidays = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/holiday?year=${viewYear}&month=${viewMonth + 1}`, { credentials: 'include' });
+      const res = await apiFetch(`/api/holiday?year=${viewYear}&month=${viewMonth + 1}`);
       if (res.ok) {
         const data = await res.json();
         setHolidays(data.holidays || []);
@@ -142,7 +143,7 @@ export default function HolidaysPage() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this holiday?')) return;
     try {
-      const res = await fetch(`/api/holiday/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await apiFetch(`/api/holiday/${id}`, { method: 'DELETE' });
       if (res.ok) { fetchHolidays(); setShowDayModal(false); }
       else { const e = await res.json(); alert(e.message || 'Failed'); }
     } catch (err) { console.error(err); }
@@ -158,11 +159,10 @@ export default function HolidaysPage() {
     try {
       const url = editingHoliday ? `/api/holiday/${editingHoliday._id}` : '/api/holiday';
       const method = editingHoliday ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
-        credentials: 'include',
       });
       if (res.ok) {
         fetchHolidays();
