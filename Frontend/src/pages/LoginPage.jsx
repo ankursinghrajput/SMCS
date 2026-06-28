@@ -396,5 +396,5 @@ const inputStyle = {
   outline: 'none',
   transition: 'border-color 0.18s, background 0.18s',
   boxSizing: 'border-box',
-  fontFamily: "'Raleway', sans-serif",
+  fontFamily: "'Inter', 'Segoe UI', sans-serif",
 };
