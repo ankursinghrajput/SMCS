@@ -55,7 +55,8 @@ export default function Topbar({ activePage, onMenuClick }) {
         </button>
 
         <div>
-          <h1 style={{
+          {/* Page title — hidden on mobile for students */}
+          <h1 className="topbar-page-title" style={{
             fontFamily: 'var(--font-heading)',
             fontSize: '1.1rem',
             fontWeight: 700,
@@ -63,6 +64,17 @@ export default function Topbar({ activePage, onMenuClick }) {
           }}>
             {pageTitles[activePage] || 'SMCS'}
           </h1>
+
+          {/* Date with day — shown on mobile for all roles */}
+          <div className="topbar-student-mobile-date">
+            <span className="topbar-student-mobile-date__day">
+              {new Date().toLocaleDateString('en-IN', { weekday: 'long' })}
+            </span>
+            <span className="topbar-student-mobile-date__date">
+              {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          </div>
+
           <p className="topbar-date" style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', marginTop: '1px' }}>{now}</p>
         </div>
       </div>

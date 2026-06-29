@@ -683,6 +683,11 @@ img {
   z-index: 10;
 }
 
+/* Student mobile date block — hidden by default on desktop */
+.topbar-student-mobile-date {
+  display: none;
+}
+
 /* --- Pagination --- */
 .pagination {
   display: flex;
@@ -1145,6 +1150,30 @@ img {
   .topbar-date,
   .topbar-user-info {
     display: none;
+  }
+
+  /* On mobile, hide the menu/page name for all roles */
+  .topbar .topbar-page-title {
+    display: none;
+  }
+
+  /* Show the student date block only on mobile */
+  .topbar-student-mobile-date {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .topbar-student-mobile-date__day {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--clr-text-primary);
+    line-height: 1.2;
+  }
+  .topbar-student-mobile-date__date {
+    font-size: 0.7rem;
+    color: var(--clr-text-muted);
+    font-weight: 500;
   }
 
   /* ── Page layout ── */
