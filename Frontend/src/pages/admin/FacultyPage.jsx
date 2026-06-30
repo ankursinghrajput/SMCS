@@ -133,46 +133,6 @@ export default function FacultyPage() {
         </button>
       </div>
 
-      {/* Faculty Cards */}
-      {loading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--clr-text-secondary)' }}>Loading faculty...</div>
-      ) : filtered.length === 0 ? (
-        <div className="empty-state" style={{ marginBottom: '24px' }}>
-          <div className="empty-state-icon"><Search size={40} strokeWidth={1} /></div>
-          <p>No faculty found matching "{search}"</p>
-        </div>
-      ) : (
-        <div className="faculty-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-          {filtered.map((f, i) => (
-            <div className="card" key={i} style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
-                <div className="avatar avatar-success" style={{ width: 48, height: 48, fontSize: '1rem' }}>
-                  {f.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{f.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)' }}>{f.email}</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem' }}>
-                  <span style={{ color: 'var(--clr-text-muted)' }}>Contact</span>
-                  <span style={{ fontWeight: 500 }}>{f.contactNumber}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button id={`edit-faculty-${f._id}`} className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => handleOpenEdit(f)}>
-                  <Pencil size={13} strokeWidth={1.5} style={{ marginRight: '4px' }} />Edit
-                </button>
-                <button id={`delete-faculty-${f._id}`} className="btn btn-danger btn-sm" onClick={() => handleDelete(f._id, f.name)}>
-                  <Trash2 size={13} strokeWidth={1.5} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Table */}
       <div className="card">
         <div className="card-header">
