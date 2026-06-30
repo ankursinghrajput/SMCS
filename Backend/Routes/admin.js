@@ -29,7 +29,9 @@ adminRouter.get("/dashboard-stats", authUser, authorizeRoles("admin", "faculty")
         averageAttendance = parseFloat(((presentOrLate / attendanceRecords.length) * 100).toFixed(2));
     }
 
-    const recentNotices = await Notice.find()
+    const recentNotices = await Notice.find({
+        $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }]
+    })
         .sort({ createdAt: -1 })
         .limit(1);
 
