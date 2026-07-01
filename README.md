@@ -1,4 +1,4 @@
-﻿# SMCS — School Management & Communication System
+﻿# SMCS — Sanjeev Memorial Center School
 
 A full-stack web application for managing students, faculty, attendance, marks, notices, and holidays — with role-based dashboards for admins, faculty, and students.
 
@@ -8,7 +8,7 @@ A full-stack web application for managing students, faculty, attendance, marks, 
 
 ## What is SMCS?
 
-SMCS gives schools a single platform to handle day-to-day operations. Admins manage users and academics, faculty record attendance and marks, and students track their own progress — all from role-specific dashboards.
+SMCS application gives a single platform to handle day-to-day operations. Admins manage users and academics, faculty record attendance and marks, and students track their own progress — all from role-specific dashboards.
 
 No spreadsheets. No manual paperwork.
 
