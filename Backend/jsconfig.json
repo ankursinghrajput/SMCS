@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": false,
+    "module": "commonjs",
+    "target": "es2020",
+    "baseUrl": "."
+  },
+  "exclude": ["node_modules"]
+}

@@ -6,11 +6,8 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
-// ── CORS ─────────────────────────────────────────────────────────────────────
-// Allow the Vercel frontend origin (set FRONTEND_URL env var on Render).
-// Falls back to localhost:5173 for local development.
 const allowedOrigins = [
-  process.env.FRONTEND_URL,          // e.g. https://smcs.vercel.app
+  process.env.FRONTEND_URL,
   'http://localhost:5173',
   'http://localhost:5174',
 ].filter(Boolean);
@@ -37,6 +34,7 @@ const studentRoutes = require("../Routes/student");
 const attendanceRoutes = require("../Routes/attendance");
 const academicRoutes = require("../Routes/academic");
 const holidayRoutes = require("../Routes/holiday");
+const healthRoutes = require("../Routes/health");
 
 app.use("/api", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -45,27 +43,28 @@ app.use("/api/student", studentRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/academic", academicRoutes);
 app.use("/api/holiday", holidayRoutes);
+app.use("/api/health", healthRoutes);
 
 // 404 handler — no route matched
 app.use((req, res) => {
-    res.status(404).json({ message: "Route not found" });
+  res.status(404).json({ message: "Route not found" });
 });
 
 // Global error handler — catches errors thrown in any route/middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    const statusCode = err.statusCode || 500;
-    res.status(statusCode).json({
-        message: err.message || "Internal Server Error"
-    });
+  console.error(err.stack);
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
+    message: err.message || "Internal Server Error"
+  });
 });
 
 connectDB().then(() => {
-    app.listen(process.env.PORT || 7001, () => {
-        console.log(`Server running on port ${process.env.PORT || 7001}`);
-    });
+  app.listen(process.env.PORT || 7001, () => {
+    console.log(`Server running on port ${process.env.PORT || 7001}`);
+  });
 }).catch((err) => {
-    console.log(err);
+  console.log(err);
 });
 
 
